@@ -1,0 +1,3376 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>lupus.exe // matteo da venezia mccormack</title>
+        <meta
+            name="description"
+            content='Matteo "Lupus" Da Venezia McCormack - Computer Science @ Trinity College Dublin, security researcher, founder of the Wild Hunt Project.'
+        />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=VT323&family=JetBrains+Mono:wght@300;400;500;700&family=Orbitron:wght@500;700;900&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            :root {
+                --bg: #07050d;
+                --bg-2: #0d0820;
+                --ink: #e9e6ff;
+                --ink-dim: #8a86b8;
+                --mag: #ff2bd1;
+                --cyan: #00f0ff;
+                --purple: #8a2be2;
+                --lime: #c6ff3d;
+                --amber: #ffb13d;
+                --red: #ff3355;
+                --green-it: #009246;
+                --red-it: #ce2b37;
+                --green-ie: #169b62;
+                --orange-ie: #ff883e;
+                --grid: rgba(138, 43, 226, 0.08);
+                --scan: rgba(0, 240, 255, 0.04);
+                --font-display: "Orbitron", sans-serif;
+                --font-mono: "JetBrains Mono", monospace;
+                --font-pixel: "VT323", monospace;
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            html {
+                scroll-behavior: smooth;
+            }
+            body {
+                background: var(--bg);
+                color: var(--ink);
+                font-family: var(--font-mono);
+                font-size: 14px;
+                line-height: 1.6;
+                overflow-x: hidden;
+                min-height: 100vh;
+            }
+
+            body::before {
+                content: "";
+                position: fixed;
+                inset: 0;
+                background:
+                    radial-gradient(
+                        ellipse at 20% 10%,
+                        rgba(255, 43, 209, 0.12),
+                        transparent 50%
+                    ),
+                    radial-gradient(
+                        ellipse at 80% 80%,
+                        rgba(0, 240, 255, 0.1),
+                        transparent 50%
+                    ),
+                    radial-gradient(
+                        ellipse at 50% 50%,
+                        rgba(138, 43, 226, 0.08),
+                        transparent 70%
+                    );
+                pointer-events: none;
+                z-index: 1;
+            }
+            body::after {
+                content: "";
+                position: fixed;
+                inset: 0;
+                background-image:
+                    linear-gradient(var(--grid) 1px, transparent 1px),
+                    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+                background-size: 40px 40px;
+                pointer-events: none;
+                z-index: 1;
+                mask-image: radial-gradient(
+                    ellipse at center,
+                    black 30%,
+                    transparent 90%
+                );
+            }
+
+            .scanlines {
+                position: fixed;
+                inset: 0;
+                background: repeating-linear-gradient(
+                    to bottom,
+                    transparent 0,
+                    transparent 2px,
+                    var(--scan) 2px,
+                    var(--scan) 3px
+                );
+                pointer-events: none;
+                z-index: 100;
+                mix-blend-mode: overlay;
+            }
+            .grain {
+                position: fixed;
+                inset: 0;
+                pointer-events: none;
+                opacity: 0.06;
+                z-index: 99;
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            }
+
+            /* BOOT */
+            #boot {
+                position: fixed;
+                inset: 0;
+                background: #000;
+                color: var(--lime);
+                font-family: var(--font-mono);
+                font-size: 13px;
+                padding: 40px 60px;
+                z-index: 9999;
+                overflow: hidden;
+                line-height: 1.5;
+            }
+            #boot.done {
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.6s ease;
+            }
+            #boot-log {
+                white-space: pre-wrap;
+            }
+            #boot-log .ok {
+                color: var(--lime);
+            }
+            #boot-log .warn {
+                color: var(--amber);
+            }
+            #boot-log .err {
+                color: var(--red);
+            }
+            #boot-log .acc {
+                color: var(--cyan);
+            }
+            #boot-log .mag {
+                color: var(--mag);
+            }
+            #boot-log .dim {
+                color: #555;
+            }
+            .cursor::after {
+                content: "▊";
+                animation: blink 1s step-end infinite;
+                color: var(--lime);
+            }
+            @keyframes blink {
+                50% {
+                    opacity: 0;
+                }
+            }
+
+            /* NAV */
+            nav {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 50;
+                backdrop-filter: blur(12px) saturate(150%);
+                background: rgba(7, 5, 13, 0.7);
+                border-bottom: 1px solid rgba(138, 43, 226, 0.3);
+                padding: 14px 32px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                font-family: var(--font-mono);
+                font-size: 12px;
+            }
+            nav .brand {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                font-family: var(--font-display);
+                font-weight: 900;
+                letter-spacing: 0.15em;
+            }
+            nav .brand .dot {
+                width: 10px;
+                height: 10px;
+                background: var(--lime);
+                border-radius: 50%;
+                box-shadow: 0 0 12px var(--lime);
+                animation: pulse 2s ease-in-out infinite;
+            }
+            @keyframes pulse {
+                0%,
+                100% {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+                50% {
+                    opacity: 0.5;
+                    transform: scale(0.8);
+                }
+            }
+            nav ul {
+                list-style: none;
+                display: flex;
+                gap: 22px;
+            }
+            nav ul a {
+                color: var(--ink-dim);
+                text-decoration: none;
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+                transition:
+                    color 0.2s,
+                    text-shadow 0.2s;
+                position: relative;
+            }
+            nav ul a:hover {
+                color: var(--cyan);
+                text-shadow: 0 0 8px var(--cyan);
+            }
+            nav ul a::before {
+                content: "> ";
+                color: var(--mag);
+                opacity: 0;
+                transition: opacity 0.2s;
+            }
+            nav ul a:hover::before {
+                opacity: 1;
+            }
+            nav .lvl {
+                color: var(--lime);
+                font-family: var(--font-pixel);
+                font-size: 18px;
+            }
+
+            main {
+                position: relative;
+                z-index: 2;
+                max-width: 1280px;
+                margin: 0 auto;
+                padding: 100px 32px 80px;
+            }
+            section {
+                margin-bottom: 140px;
+                position: relative;
+            }
+
+            .section-head {
+                display: flex;
+                align-items: baseline;
+                gap: 16px;
+                margin-bottom: 36px;
+                border-bottom: 1px dashed rgba(138, 43, 226, 0.4);
+                padding-bottom: 14px;
+            }
+            .section-head .num {
+                font-family: var(--font-pixel);
+                font-size: 28px;
+                color: var(--mag);
+                text-shadow: 0 0 10px var(--mag);
+            }
+            .section-head h2 {
+                font-family: var(--font-display);
+                font-size: 28px;
+                font-weight: 900;
+                letter-spacing: 0.2em;
+                color: var(--ink);
+                text-transform: uppercase;
+            }
+            .section-head .meta {
+                margin-left: auto;
+                font-size: 11px;
+                color: var(--ink-dim);
+                text-transform: uppercase;
+                letter-spacing: 0.15em;
+            }
+            .section-head .meta span {
+                color: var(--cyan);
+            }
+
+            /* HERO */
+            #home {
+                min-height: calc(100vh - 100px);
+                display: grid;
+                grid-template-columns: 1.4fr 1fr;
+                gap: 48px;
+                align-items: center;
+                margin-bottom: 80px;
+            }
+            .hero-left h1 {
+                font-family: var(--font-display);
+                font-size: clamp(44px, 7.5vw, 88px);
+                font-weight: 900;
+                line-height: 0.95;
+                letter-spacing: 0.02em;
+                text-transform: uppercase;
+                margin-bottom: 24px;
+                position: relative;
+            }
+            .hero-left h1 .glitch {
+                display: inline-block;
+                background: linear-gradient(
+                    90deg,
+                    var(--mag),
+                    var(--cyan),
+                    var(--purple)
+                );
+                -webkit-background-clip: text;
+                background-clip: text;
+                color: transparent;
+                animation: hue 6s linear infinite;
+            }
+            @keyframes hue {
+                to {
+                    filter: hue-rotate(360deg);
+                }
+            }
+            .hero-left .name {
+                font-family: var(--font-pixel);
+                font-size: 28px;
+                color: var(--lime);
+                margin-bottom: 6px;
+                letter-spacing: 0.05em;
+            }
+            .hero-left .tag {
+                font-family: var(--font-pixel);
+                font-size: 22px;
+                color: var(--cyan);
+                margin-bottom: 18px;
+                letter-spacing: 0.05em;
+                min-height: 30px;
+            }
+            .hero-left .tag .typed::after {
+                content: "▊";
+                color: var(--cyan);
+                animation: blink 1s step-end infinite;
+            }
+            .hero-left .blurb {
+                color: var(--ink-dim);
+                font-size: 14px;
+                max-width: 580px;
+                margin-bottom: 28px;
+            }
+            .hero-left .blurb b {
+                color: var(--cyan);
+                font-weight: 500;
+            }
+            .hero-left .blurb em {
+                color: var(--mag);
+                font-style: normal;
+            }
+            .hero-left .blurb .lime {
+                color: var(--lime);
+            }
+            .hero-cta {
+                display: flex;
+                gap: 14px;
+                flex-wrap: wrap;
+            }
+            .btn {
+                padding: 12px 22px;
+                font-family: var(--font-mono);
+                font-size: 12px;
+                text-transform: uppercase;
+                letter-spacing: 0.15em;
+                background: transparent;
+                color: var(--ink);
+                border: 1px solid var(--mag);
+                cursor: pointer;
+                text-decoration: none;
+                position: relative;
+                transition: all 0.2s;
+                clip-path: polygon(
+                    0 0,
+                    calc(100% - 12px) 0,
+                    100% 12px,
+                    100% 100%,
+                    12px 100%,
+                    0 calc(100% - 12px)
+                );
+            }
+            .btn::before {
+                content: "> ";
+                color: var(--mag);
+            }
+            .btn:hover {
+                background: var(--mag);
+                color: #000;
+                box-shadow: 0 0 24px var(--mag);
+            }
+            .btn.cyan {
+                border-color: var(--cyan);
+            }
+            .btn.cyan::before {
+                color: var(--cyan);
+            }
+            .btn.cyan:hover {
+                background: var(--cyan);
+                box-shadow: 0 0 24px var(--cyan);
+            }
+            .btn.lime {
+                border-color: var(--lime);
+            }
+            .btn.lime::before {
+                color: var(--lime);
+            }
+            .btn.lime:hover {
+                background: var(--lime);
+                box-shadow: 0 0 24px var(--lime);
+            }
+
+            .char-card {
+                background: linear-gradient(
+                    135deg,
+                    rgba(138, 43, 226, 0.15),
+                    rgba(0, 240, 255, 0.05)
+                );
+                border: 1px solid rgba(0, 240, 255, 0.4);
+                padding: 24px;
+                position: relative;
+                clip-path: polygon(
+                    0 0,
+                    calc(100% - 20px) 0,
+                    100% 20px,
+                    100% 100%,
+                    20px 100%,
+                    0 calc(100% - 20px)
+                );
+                box-shadow:
+                    inset 0 0 30px rgba(255, 43, 209, 0.05),
+                    0 0 40px rgba(138, 43, 226, 0.2);
+            }
+            .char-card::before {
+                content: "CHAR.SHEET v2.07";
+                position: absolute;
+                top: 8px;
+                right: 16px;
+                font-family: var(--font-pixel);
+                font-size: 14px;
+                color: var(--cyan);
+                opacity: 0.7;
+            }
+
+            .char-portrait {
+                width: 100%;
+                aspect-ratio: 1;
+                margin: 24px 0 16px;
+                position: relative;
+                border: 1px solid rgba(0, 240, 255, 0.5);
+                overflow: hidden;
+                background: #0a0818;
+                box-shadow: inset 0 0 30px rgba(255, 43, 209, 0.15);
+            }
+            .char-portrait img {
+                width: 100%;
+                height: 100%;
+                display: block;
+                object-fit: cover;
+                image-rendering: pixelated;
+                image-rendering: -moz-crisp-edges;
+                image-rendering: crisp-edges;
+                filter: saturate(1.05) contrast(1.05);
+            }
+            /* subtle scanlines + corner brackets to keep the cyberpunk frame */
+            .char-portrait::before {
+                content: "";
+                position: absolute;
+                inset: 0;
+                background: repeating-linear-gradient(
+                    to bottom,
+                    transparent 0,
+                    transparent 3px,
+                    rgba(0, 240, 255, 0.05) 3px,
+                    rgba(0, 240, 255, 0.05) 4px
+                );
+                pointer-events: none;
+                mix-blend-mode: overlay;
+            }
+            .char-portrait::after {
+                content: "";
+                position: absolute;
+                inset: 6px;
+                border: 1px solid transparent;
+                background:
+                    linear-gradient(#ff2bd1, #ff2bd1) top left / 12px 1px
+                        no-repeat,
+                    linear-gradient(#ff2bd1, #ff2bd1) top left / 1px 12px
+                        no-repeat,
+                    linear-gradient(#00f0ff, #00f0ff) top right / 12px 1px
+                        no-repeat,
+                    linear-gradient(#00f0ff, #00f0ff) top right / 1px 12px
+                        no-repeat,
+                    linear-gradient(#00f0ff, #00f0ff) bottom left / 12px 1px
+                        no-repeat,
+                    linear-gradient(#00f0ff, #00f0ff) bottom left / 1px 12px
+                        no-repeat,
+                    linear-gradient(#ff2bd1, #ff2bd1) bottom right / 12px 1px
+                        no-repeat,
+                    linear-gradient(#ff2bd1, #ff2bd1) bottom right / 1px 12px
+                        no-repeat;
+                pointer-events: none;
+            }
+            .char-name {
+                font-family: var(--font-display);
+                font-weight: 700;
+                font-size: 16px;
+                letter-spacing: 0.08em;
+                color: var(--ink);
+            }
+            .char-class {
+                font-family: var(--font-pixel);
+                font-size: 18px;
+                color: var(--lime);
+                margin-bottom: 14px;
+            }
+            .stats {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 6px 14px;
+            }
+            .stat {
+                display: flex;
+                justify-content: space-between;
+                font-size: 11px;
+                color: var(--ink-dim);
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                padding: 4px 0;
+                border-bottom: 1px dotted rgba(138, 43, 226, 0.3);
+            }
+            .stat .v {
+                color: var(--cyan);
+                font-weight: 700;
+            }
+            .xp-bar {
+                margin-top: 16px;
+                font-size: 10px;
+                color: var(--ink-dim);
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+            }
+            .xp-track {
+                height: 8px;
+                background: rgba(138, 43, 226, 0.2);
+                margin-top: 6px;
+                position: relative;
+                overflow: hidden;
+            }
+            .xp-fill {
+                height: 100%;
+                background: linear-gradient(90deg, var(--mag), var(--cyan));
+                width: 0;
+                box-shadow: 0 0 12px var(--mag);
+                animation: fill 2.5s ease-out 0.5s forwards;
+            }
+            @keyframes fill {
+                to {
+                    width: 78%;
+                }
+            }
+
+            /* ABOUT */
+            .about-grid {
+                display: grid;
+                grid-template-columns: 1.2fr 1fr;
+                gap: 40px;
+                align-items: start;
+            }
+            .about-text p {
+                margin-bottom: 16px;
+                color: var(--ink-dim);
+            }
+            .about-text p b,
+            .about-text p strong {
+                color: var(--cyan);
+                font-weight: 500;
+            }
+            .about-text p em {
+                color: var(--mag);
+                font-style: normal;
+            }
+            .about-text p .lime {
+                color: var(--lime);
+            }
+            .lore-box {
+                background: rgba(13, 8, 32, 0.6);
+                border-left: 3px solid var(--lime);
+                padding: 18px 22px;
+                margin: 20px 0;
+                font-family: var(--font-pixel);
+                font-size: 19px;
+                color: var(--lime);
+                line-height: 1.4;
+            }
+            .lore-box::before {
+                content: "// LORE LOG #001";
+                display: block;
+                font-family: var(--font-mono);
+                font-size: 10px;
+                color: var(--ink-dim);
+                text-transform: uppercase;
+                letter-spacing: 0.15em;
+                margin-bottom: 8px;
+            }
+            .signoff {
+                margin-top: 24px;
+                padding-top: 16px;
+                border-top: 1px dashed rgba(138, 43, 226, 0.3);
+                font-family: var(--font-pixel);
+                font-size: 18px;
+                color: var(--mag);
+                line-height: 1.3;
+            }
+            .signoff small {
+                display: block;
+                font-family: var(--font-mono);
+                font-size: 10px;
+                color: var(--ink-dim);
+                text-transform: uppercase;
+                letter-spacing: 0.15em;
+                margin-bottom: 6px;
+            }
+
+            .origin-map {
+                background: rgba(13, 8, 32, 0.6);
+                border: 1px solid rgba(0, 240, 255, 0.3);
+                padding: 20px;
+                position: relative;
+            }
+            .origin-map h3 {
+                font-family: var(--font-display);
+                font-size: 13px;
+                letter-spacing: 0.2em;
+                color: var(--cyan);
+                margin-bottom: 16px;
+                text-transform: uppercase;
+            }
+            .origin-map svg {
+                width: 100%;
+                height: auto;
+                display: block;
+            }
+            .origin-map .legend {
+                display: flex;
+                justify-content: space-between;
+                font-size: 10px;
+                color: var(--ink-dim);
+                margin-top: 12px;
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+            }
+            .origin-map .legend .from {
+                color: var(--mag);
+            }
+            .origin-map .legend .to {
+                color: var(--cyan);
+            }
+
+            .lang-stats {
+                margin-top: 24px;
+                background: rgba(13, 8, 32, 0.4);
+                border: 1px dashed rgba(138, 43, 226, 0.4);
+                padding: 18px;
+            }
+            .lang-stats h3 {
+                font-family: var(--font-pixel);
+                font-size: 18px;
+                color: var(--lime);
+                margin-bottom: 14px;
+            }
+            .lang-row {
+                display: grid;
+                grid-template-columns: 130px 1fr 50px;
+                gap: 12px;
+                align-items: center;
+                font-size: 11px;
+                margin-bottom: 8px;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+            }
+            .lang-row .name {
+                color: var(--ink);
+            }
+            .lang-row .name .flag {
+                margin-right: 6px;
+            }
+            .lang-bar {
+                height: 8px;
+                background: rgba(138, 43, 226, 0.15);
+                position: relative;
+                overflow: hidden;
+            }
+            .lang-bar i {
+                display: block;
+                height: 100%;
+                background: linear-gradient(90deg, var(--mag), var(--cyan));
+            }
+            .lang-row .lvl {
+                color: var(--cyan);
+                font-family: var(--font-pixel);
+                font-size: 16px;
+                text-align: right;
+            }
+
+            /* TIMELINE */
+            .timeline {
+                position: relative;
+                padding-left: 32px;
+            }
+            .timeline::before {
+                content: "";
+                position: absolute;
+                left: 8px;
+                top: 8px;
+                bottom: 8px;
+                width: 2px;
+                background: linear-gradient(
+                    to bottom,
+                    var(--mag),
+                    var(--cyan),
+                    var(--lime)
+                );
+                box-shadow: 0 0 10px var(--mag);
+            }
+            .quest {
+                position: relative;
+                padding: 16px 20px;
+                margin-bottom: 18px;
+                background: rgba(13, 8, 32, 0.5);
+                border: 1px solid rgba(138, 43, 226, 0.3);
+                transition:
+                    border-color 0.2s,
+                    transform 0.2s;
+            }
+            .quest:hover {
+                border-color: var(--cyan);
+                transform: translateX(4px);
+            }
+            .quest::before {
+                content: "";
+                position: absolute;
+                left: -29px;
+                top: 22px;
+                width: 14px;
+                height: 14px;
+                background: var(--bg);
+                border: 2px solid var(--mag);
+                border-radius: 50%;
+                box-shadow: 0 0 12px var(--mag);
+            }
+            .quest.complete::before {
+                background: var(--lime);
+                border-color: var(--lime);
+                box-shadow: 0 0 12px var(--lime);
+            }
+            .quest.active::before {
+                background: var(--cyan);
+                border-color: var(--cyan);
+                animation: pulse 1.5s infinite;
+            }
+            .quest-head {
+                display: flex;
+                justify-content: space-between;
+                align-items: baseline;
+                margin-bottom: 6px;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .quest-title {
+                font-family: var(--font-display);
+                font-size: 14px;
+                letter-spacing: 0.1em;
+                color: var(--ink);
+                text-transform: uppercase;
+            }
+            .quest-date {
+                font-family: var(--font-pixel);
+                font-size: 16px;
+                color: var(--cyan);
+            }
+            .quest-loc {
+                font-size: 11px;
+                color: var(--mag);
+                margin-bottom: 8px;
+                letter-spacing: 0.1em;
+                text-transform: uppercase;
+            }
+            .quest-desc {
+                font-size: 13px;
+                color: var(--ink-dim);
+            }
+            .quest-tag {
+                display: inline-block;
+                font-family: var(--font-pixel);
+                font-size: 13px;
+                background: rgba(255, 43, 209, 0.15);
+                border: 1px solid rgba(255, 43, 209, 0.4);
+                color: var(--mag);
+                padding: 1px 8px;
+                margin-right: 6px;
+                margin-top: 8px;
+            }
+            .quest-tag.lime {
+                background: rgba(198, 255, 61, 0.1);
+                border-color: rgba(198, 255, 61, 0.4);
+                color: var(--lime);
+            }
+            .quest-tag.cyan {
+                background: rgba(0, 240, 255, 0.1);
+                border-color: rgba(0, 240, 255, 0.4);
+                color: var(--cyan);
+            }
+
+            /* INVENTORY */
+            .inv-bar {
+                display: flex;
+                gap: 8px;
+                margin-bottom: 28px;
+                flex-wrap: wrap;
+            }
+            .inv-bar .filter {
+                font-family: var(--font-mono);
+                font-size: 11px;
+                text-transform: uppercase;
+                letter-spacing: 0.12em;
+                padding: 6px 12px;
+                background: transparent;
+                color: var(--ink-dim);
+                border: 1px solid rgba(138, 43, 226, 0.4);
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+            .inv-bar .filter:hover,
+            .inv-bar .filter.active {
+                color: var(--bg);
+                background: var(--cyan);
+                border-color: var(--cyan);
+                box-shadow: 0 0 12px var(--cyan);
+            }
+
+            .projects-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+                gap: 18px;
+            }
+            .item {
+                background: rgba(13, 8, 32, 0.7);
+                border: 1px solid rgba(138, 43, 226, 0.3);
+                padding: 20px;
+                position: relative;
+                transition: all 0.25s;
+                cursor: pointer;
+                overflow: hidden;
+            }
+            .item::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 2px;
+                background: linear-gradient(
+                    90deg,
+                    transparent,
+                    var(--cyan),
+                    transparent
+                );
+                transition: left 0.6s;
+            }
+            .item:hover::before {
+                left: 100%;
+            }
+            .item:hover {
+                border-color: var(--mag);
+                transform: translateY(-3px);
+                box-shadow: 0 8px 30px rgba(255, 43, 209, 0.25);
+            }
+            .item .rarity {
+                position: absolute;
+                top: 12px;
+                right: 14px;
+                font-family: var(--font-pixel);
+                font-size: 14px;
+                letter-spacing: 0.1em;
+            }
+            .item.legendary {
+                border-color: rgba(255, 177, 61, 0.5);
+            }
+            .item.legendary .rarity {
+                color: var(--amber);
+            }
+            .item.epic .rarity {
+                color: var(--mag);
+            }
+            .item.rare .rarity {
+                color: var(--cyan);
+            }
+            .item.common .rarity {
+                color: var(--ink-dim);
+            }
+            .item .icon {
+                width: 48px;
+                height: 48px;
+                background: linear-gradient(135deg, var(--mag), var(--purple));
+                margin-bottom: 14px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-family: var(--font-pixel);
+                font-size: 24px;
+                color: #000;
+                clip-path: polygon(
+                    0 0,
+                    calc(100% - 8px) 0,
+                    100% 8px,
+                    100% 100%,
+                    8px 100%,
+                    0 calc(100% - 8px)
+                );
+            }
+            .item h3 {
+                font-family: var(--font-display);
+                font-size: 13px;
+                letter-spacing: 0.1em;
+                text-transform: uppercase;
+                margin-bottom: 4px;
+            }
+            .item .type {
+                font-family: var(--font-pixel);
+                font-size: 14px;
+                color: var(--lime);
+                margin-bottom: 12px;
+            }
+            .item p {
+                font-size: 12px;
+                color: var(--ink-dim);
+                margin-bottom: 12px;
+                min-height: 56px;
+            }
+            .item .stack {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 4px;
+            }
+            .item .chip {
+                font-family: var(--font-pixel);
+                font-size: 12px;
+                color: var(--cyan);
+                background: rgba(0, 240, 255, 0.08);
+                border: 1px solid rgba(0, 240, 255, 0.3);
+                padding: 1px 6px;
+            }
+
+            /* GUILD */
+            .guild-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+                gap: 18px;
+            }
+            .guild {
+                background:
+                    linear-gradient(
+                        135deg,
+                        rgba(255, 43, 209, 0.06),
+                        transparent 60%
+                    ),
+                    rgba(13, 8, 32, 0.7);
+                border: 1px solid rgba(0, 240, 255, 0.3);
+                padding: 22px;
+                position: relative;
+            }
+            .guild .crest {
+                position: absolute;
+                top: 18px;
+                right: 18px;
+                width: 36px;
+                height: 36px;
+                border: 1px solid var(--cyan);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-family: var(--font-display);
+                font-weight: 900;
+                color: var(--cyan);
+                font-size: 14px;
+            }
+            .guild .role {
+                font-family: var(--font-pixel);
+                font-size: 18px;
+                color: var(--mag);
+                margin-bottom: 2px;
+            }
+            .guild .org {
+                font-family: var(--font-display);
+                font-size: 13px;
+                letter-spacing: 0.1em;
+                text-transform: uppercase;
+                color: var(--ink);
+                margin-bottom: 4px;
+                padding-right: 50px;
+            }
+            .guild .span {
+                font-size: 11px;
+                color: var(--ink-dim);
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+                margin-bottom: 12px;
+            }
+            .guild ul {
+                list-style: none;
+                padding: 0;
+            }
+            .guild ul li {
+                font-size: 12px;
+                color: var(--ink-dim);
+                padding: 4px 0 4px 18px;
+                position: relative;
+            }
+            .guild ul li::before {
+                content: "▸";
+                position: absolute;
+                left: 0;
+                color: var(--lime);
+            }
+
+            /* SKILL TREE */
+            .skill-tree {
+                background: rgba(7, 5, 13, 0.7);
+                border: 1px solid rgba(138, 43, 226, 0.3);
+                padding: 30px;
+                position: relative;
+                overflow-x: auto;
+            }
+            .skill-tree svg {
+                width: 100%;
+                height: auto;
+                min-width: 760px;
+                display: block;
+            }
+            .skill-node circle {
+                transition:
+                    r 0.2s,
+                    filter 0.2s;
+                cursor: pointer;
+            }
+            .skill-node:hover circle {
+                r: 26;
+                filter: drop-shadow(0 0 10px currentColor);
+            }
+            .skill-node text {
+                font-family: var(--font-pixel);
+                font-size: 13px;
+                fill: var(--ink);
+                text-anchor: middle;
+                pointer-events: none;
+            }
+            .skill-node .lvl {
+                font-family: var(--font-pixel);
+                font-size: 11px;
+                fill: var(--lime);
+            }
+            .skill-link {
+                stroke-dasharray: 4 4;
+                fill: none;
+                opacity: 0.5;
+            }
+            .legend-tree {
+                display: flex;
+                gap: 18px;
+                margin-top: 18px;
+                font-size: 11px;
+                color: var(--ink-dim);
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+                flex-wrap: wrap;
+            }
+            .legend-tree span i {
+                display: inline-block;
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                margin-right: 6px;
+                vertical-align: middle;
+            }
+
+            /* TROPHIES */
+            .ach-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+                gap: 12px;
+            }
+            .trophy {
+                aspect-ratio: 1;
+                background: rgba(13, 8, 32, 0.6);
+                border: 1px solid rgba(138, 43, 226, 0.3);
+                padding: 14px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+                transition: all 0.2s;
+                position: relative;
+            }
+            .trophy:hover {
+                border-color: var(--amber);
+                box-shadow: 0 0 24px rgba(255, 177, 61, 0.3);
+                transform: scale(1.03);
+            }
+            .trophy.locked {
+                opacity: 0.35;
+                filter: grayscale(1);
+            }
+            .trophy.locked::after {
+                content: "🔒";
+                position: absolute;
+                inset: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 28px;
+            }
+            .trophy .ico {
+                font-size: 32px;
+                margin-bottom: 8px;
+                line-height: 1;
+            }
+            .trophy .ach-name {
+                font-family: var(--font-display);
+                font-size: 10px;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+                color: var(--ink);
+                margin-bottom: 4px;
+            }
+            .trophy .desc {
+                font-size: 10px;
+                color: var(--ink-dim);
+                line-height: 1.3;
+            }
+            .trophy .pts {
+                font-family: var(--font-pixel);
+                font-size: 13px;
+                color: var(--amber);
+                margin-top: 4px;
+            }
+
+            /* SOCIETIES */
+            .soc-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+                gap: 14px;
+                margin-bottom: 32px;
+            }
+            .soc {
+                background: rgba(13, 8, 32, 0.5);
+                border: 1px solid rgba(138, 43, 226, 0.3);
+                padding: 16px;
+            }
+            .soc h4 {
+                font-family: var(--font-display);
+                font-size: 12px;
+                letter-spacing: 0.1em;
+                text-transform: uppercase;
+                color: var(--ink);
+                margin-bottom: 4px;
+            }
+            .soc .yr {
+                font-family: var(--font-pixel);
+                font-size: 14px;
+                color: var(--cyan);
+                margin-bottom: 8px;
+            }
+            .soc p {
+                font-size: 12px;
+                color: var(--ink-dim);
+            }
+
+            /* SCROLLS */
+            .blog-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 16px;
+            }
+            .scroll {
+                background: rgba(13, 8, 32, 0.5);
+                border: 1px dashed rgba(0, 240, 255, 0.3);
+                padding: 18px;
+                position: relative;
+            }
+            .scroll .stamp {
+                position: absolute;
+                top: 12px;
+                right: 14px;
+                font-family: var(--font-pixel);
+                font-size: 12px;
+                color: var(--ink-dim);
+            }
+            .scroll h3 {
+                font-family: var(--font-display);
+                font-size: 13px;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+                margin-bottom: 6px;
+                color: var(--ink);
+            }
+            .scroll .excerpt {
+                font-size: 12px;
+                color: var(--ink-dim);
+                margin-bottom: 8px;
+            }
+            .scroll .read {
+                font-family: var(--font-pixel);
+                font-size: 14px;
+                color: var(--lime);
+            }
+
+            /* TERMINAL */
+            .terminal {
+                background: #000;
+                border: 1px solid var(--lime);
+                box-shadow:
+                    0 0 30px rgba(198, 255, 61, 0.15),
+                    inset 0 0 60px rgba(0, 0, 0, 0.7);
+                font-family: var(--font-mono);
+                font-size: 13px;
+                color: var(--lime);
+                position: relative;
+                overflow: hidden;
+            }
+            .terminal-bar {
+                background: rgba(198, 255, 61, 0.1);
+                padding: 6px 14px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                border-bottom: 1px solid rgba(198, 255, 61, 0.3);
+                font-size: 11px;
+                color: var(--lime);
+                text-transform: uppercase;
+                letter-spacing: 0.15em;
+            }
+            .terminal-bar .dots {
+                display: flex;
+                gap: 6px;
+                margin-right: 12px;
+            }
+            .terminal-bar .dots i {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background: var(--red);
+            }
+            .terminal-bar .dots i:nth-child(2) {
+                background: var(--amber);
+            }
+            .terminal-bar .dots i:nth-child(3) {
+                background: var(--lime);
+            }
+            .terminal-body {
+                padding: 18px 22px;
+                min-height: 320px;
+                max-height: 420px;
+                overflow-y: auto;
+                line-height: 1.55;
+            }
+            .terminal-body::-webkit-scrollbar {
+                width: 6px;
+            }
+            .terminal-body::-webkit-scrollbar-thumb {
+                background: var(--lime);
+            }
+            .term-line {
+                white-space: pre-wrap;
+                word-break: break-word;
+            }
+            .term-line .prompt {
+                color: var(--mag);
+            }
+            .term-line .you {
+                color: var(--cyan);
+            }
+            .term-line .ok {
+                color: var(--lime);
+            }
+            .term-line .info {
+                color: var(--ink);
+            }
+            .term-line .warn {
+                color: var(--amber);
+            }
+            .term-input {
+                display: flex;
+                align-items: center;
+                padding: 0 22px 18px;
+            }
+            .term-input .prompt {
+                color: var(--mag);
+                margin-right: 8px;
+                white-space: nowrap;
+            }
+            .term-input input {
+                flex: 1;
+                background: transparent;
+                border: none;
+                outline: none;
+                color: var(--cyan);
+                font-family: var(--font-mono);
+                font-size: 13px;
+                caret-color: var(--lime);
+            }
+
+            footer {
+                position: relative;
+                z-index: 2;
+                padding: 40px 32px 24px;
+                border-top: 1px dashed rgba(138, 43, 226, 0.4);
+                text-align: center;
+                font-size: 11px;
+                color: var(--ink-dim);
+                letter-spacing: 0.15em;
+                text-transform: uppercase;
+            }
+            footer .heart {
+                color: var(--mag);
+            }
+            footer .konami {
+                color: var(--lime);
+                margin-top: 8px;
+                font-family: var(--font-pixel);
+                font-size: 14px;
+            }
+            footer .signed {
+                color: var(--mag);
+                margin-top: 6px;
+                font-family: var(--font-pixel);
+                font-size: 14px;
+                letter-spacing: 0.05em;
+                text-transform: none;
+            }
+
+            #konami-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.92);
+                z-index: 9000;
+                display: none;
+                align-items: center;
+                justify-content: center;
+                flex-direction: column;
+                text-align: center;
+                padding: 40px;
+            }
+            #konami-overlay.show {
+                display: flex;
+                animation: glitchin 0.5s;
+            }
+            @keyframes glitchin {
+                0%,
+                100% {
+                    transform: translate(0);
+                }
+                20% {
+                    transform: translate(-2px, 2px);
+                }
+                40% {
+                    transform: translate(2px, -2px);
+                }
+                60% {
+                    transform: translate(-1px, -1px);
+                }
+                80% {
+                    transform: translate(1px, 1px);
+                }
+            }
+            #konami-overlay h2 {
+                font-family: var(--font-display);
+                font-size: 64px;
+                color: var(--lime);
+                text-shadow: 0 0 30px var(--lime);
+                margin-bottom: 14px;
+                animation: hue 4s linear infinite;
+            }
+            #konami-overlay p {
+                font-family: var(--font-pixel);
+                font-size: 24px;
+                color: var(--cyan);
+                max-width: 600px;
+                line-height: 1.4;
+            }
+            #konami-overlay .close {
+                margin-top: 32px;
+                font-size: 13px;
+                color: var(--ink-dim);
+            }
+
+            @media (max-width: 880px) {
+                nav ul {
+                    display: none;
+                }
+                main {
+                    padding: 80px 18px 60px;
+                }
+                #home {
+                    grid-template-columns: 1fr;
+                }
+                .about-grid {
+                    grid-template-columns: 1fr;
+                }
+                .section-head .meta {
+                    display: none;
+                }
+                section {
+                    margin-bottom: 80px;
+                }
+            }
+
+            .reveal {
+                opacity: 0;
+                transform: translateY(20px);
+                transition:
+                    opacity 0.7s,
+                    transform 0.7s;
+            }
+            .reveal.visible {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        </style>
+    </head>
+    <body>
+        <div id="boot"><div id="boot-log"></div></div>
+
+        <div class="grain"></div>
+        <div class="scanlines"></div>
+
+        <nav>
+            <div class="brand">
+                <span class="dot"></span><span>LUPUS.EXE</span>
+            </div>
+            <ul>
+                <li><a href="#home">home</a></li>
+                <li><a href="#about">about</a></li>
+                <li><a href="#education">edu</a></li>
+                <li><a href="#skills">skills</a></li>
+                <li><a href="#projects">inventory</a></li>
+                <li><a href="#experience">guild</a></li>
+                <li><a href="#achievements">trophies</a></li>
+                <li><a href="#guilds">societies</a></li>
+                <li><a href="#contact">contact</a></li>
+            </ul>
+            <div class="lvl">LVL 22</div>
+        </nav>
+
+        <main>
+            <!-- HERO -->
+            <section id="home">
+                <div class="hero-left">
+                    <div class="name">Matteo "Lupus" Da Venezia McCormack</div>
+                    <div class="tag">
+                        &gt; <span class="typed" id="typed"></span>
+                    </div>
+                    <h1>
+                        <span class="glitch">EVERY</span><br />
+                        <span class="glitch">SECOND</span><br />
+                        <span class="glitch">COUNTS.</span>
+                    </h1>
+                    <p class="blurb">
+                        Half <em>Venetian</em>, half <em>Irish</em>, fully
+                        addicted to elegant code. <b>Computer Science</b> at
+                        <b>Trinity College Dublin</b>, researching
+                        <b>autonomous networks</b> at the
+                        <b>Huawei Ireland Research Centre</b>, training as a
+                        <em>security researcher</em>, and founder of the
+                        <span class="lime">Wild Hunt Project</span>, a community
+                        of problem-hunters who refuse to walk past a broken
+                        thing.
+                    </p>
+                    <div class="hero-cta">
+                        <a class="btn" href="#projects">view inventory</a>
+                        <a class="btn cyan" href="#contact">open comms</a>
+                        <a class="btn lime" href="#about">read the lore</a>
+                    </div>
+                </div>
+
+                <div class="char-card">
+                    <div class="char-portrait">
+                        <img
+                            src="data:image/webp;base64,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"
+                            alt="Matteo Lupus Da Venezia McCormack — pixel-art portrait"
+                        />
+                    </div>
+                    <div class="char-name">
+                        MATTEO "LUPUS" DA VENEZIA McCORMACK
+                    </div>
+                    <div class="char-class">
+                        SECURITY RESEARCHER / CS APPRENTICE / FOUNDER
+                    </div>
+                    <div class="stats">
+                        <div class="stat">
+                            <span>STR</span><span class="v">18</span>
+                        </div>
+                        <div class="stat">
+                            <span>INT</span><span class="v">19</span>
+                        </div>
+                        <div class="stat">
+                            <span>DEX</span><span class="v">17</span>
+                        </div>
+                        <div class="stat">
+                            <span>WIS</span><span class="v">18</span>
+                        </div>
+                        <div class="stat">
+                            <span>CHA</span><span class="v">17</span>
+                        </div>
+                        <div class="stat">
+                            <span>LCK</span><span class="v">20</span>
+                        </div>
+                    </div>
+                    <div class="xp-bar">
+                        XP &mdash; LVL 22 → 23
+                        <div class="xp-track"><div class="xp-fill"></div></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ABOUT -->
+            <section id="about" class="reveal">
+                <div class="section-head">
+                    <span class="num">01</span>
+                    <h2>Origin Story</h2>
+                    <span class="meta">file: <span>about.md</span></span>
+                </div>
+
+                <div class="about-grid">
+                    <div class="about-text">
+                        <p>
+                            I didn't fall into technology. I walked towards it,
+                            deliberately, curiously, and with the kind of
+                            stubbornness that refuses to leave a problem
+                            unsolved. 💻
+                        </p>
+                        <p>
+                            I'm a <b>Computer Science</b> student at
+                            <em>Trinity College Dublin</em>, currently
+                            researching <b>autonomous networks</b> at the
+                            <b>Huawei Ireland Research Centre</b>, work that
+                            sits at the frontier of how the world stays
+                            connected. But the title only tells part of the
+                            story. The rest lives in the hours outside the
+                            office and the lecture hall.
+                        </p>
+                        <p>
+                            I'm training as a <em>security researcher</em> 🔐,
+                            hunting vulnerabilities across real-world
+                            applications through bug bounty programmes on
+                            <b>HackerOne</b> and <b>Bugcrowd</b>, testing web
+                            application flaws, misconfigurations and logic
+                            issues, then writing them up clearly and disclosing
+                            them responsibly. Alongside that, I train in
+                            <b>Capture The Flag</b> environments on
+                            <b>Hack The Box</b> and <b>TryHackMe</b>, sharpening
+                            the instincts that only come from actually breaking
+                            things in a controlled setting.
+                        </p>
+
+                        <div class="lore-box">
+                            "The best problem-solvers aren't defined by their
+                            job title. They're defined by the hunt. By the
+                            refusal to walk past a broken thing without wanting
+                            to fix it."
+                        </div>
+
+                        <p>
+                            I founded the
+                            <span class="lime">Wild Hunt Project</span> 🐺, a
+                            community built around that exact idea. What I'm
+                            drawn to doesn't fit neatly into one box.
+                            <b>Criminology</b> and <b>forensic science</b> sit
+                            beside <b>machine learning</b> and
+                            <b>systems architecture</b> in how I think.
+                            <b>Military history</b> informs how I approach
+                            strategy. <b>Literature</b>
+                            shapes how I communicate. I believe the most
+                            unexpected ideas come from people who refuse to stay
+                            in their lane, and I've never been particularly good
+                            at staying in mine.
+                        </p>
+                        <p>
+                            I'm not the loudest person in the room. But I'm
+                            usually the one who's already thought three moves
+                            ahead, or who asks the question nobody else thought
+                            to ask. I work hard in the background, building,
+                            testing, failing, iterating, because that's where
+                            the real work actually happens.
+                        </p>
+                        <p>
+                            If you're working on something at the edge of what's
+                            possible in security, technology or innovation, or
+                            if you just want to talk to someone who gets
+                            genuinely excited about where all of this is going,
+                            <em>I'd love to connect</em>. The future doesn't
+                            build itself. But it's a good time to try. 👋😎
+                        </p>
+
+                        <div class="signoff">
+                            <small>// signed</small>
+                            Your Friendly Neighbourhood Wolf 🐺
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="origin-map">
+                            <h3>// route_traveled.svg</h3>
+                            <svg
+                                viewBox="0 0 400 240"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <defs>
+                                    <pattern
+                                        id="mg"
+                                        width="20"
+                                        height="20"
+                                        patternUnits="userSpaceOnUse"
+                                    >
+                                        <path
+                                            d="M 20 0 L 0 0 0 20"
+                                            fill="none"
+                                            stroke="rgba(138,43,226,0.15)"
+                                            stroke-width="0.5"
+                                        />
+                                    </pattern>
+                                    <linearGradient
+                                        id="route"
+                                        x1="0"
+                                        y1="0"
+                                        x2="1"
+                                        y2="0"
+                                    >
+                                        <stop
+                                            offset="0%"
+                                            stop-color="#ff2bd1"
+                                        />
+                                        <stop
+                                            offset="100%"
+                                            stop-color="#00f0ff"
+                                        />
+                                    </linearGradient>
+                                </defs>
+                                <rect
+                                    width="400"
+                                    height="240"
+                                    fill="url(#mg)"
+                                />
+                                <path
+                                    d="M 30 90 Q 60 70 100 80 L 130 70 L 160 90 L 190 80 L 230 95 L 280 80 L 330 100 L 380 90 L 380 200 L 30 200 Z"
+                                    fill="rgba(138,43,226,0.08)"
+                                    stroke="rgba(138,43,226,0.3)"
+                                    stroke-width="1"
+                                />
+                                <path
+                                    d="M 40 80 Q 55 60 70 70 Q 85 65 90 90 Q 80 110 65 105 Q 50 100 40 80 Z"
+                                    fill="rgba(0,240,255,0.06)"
+                                    stroke="rgba(0,240,255,0.3)"
+                                    stroke-width="1"
+                                />
+                                <path
+                                    d="M 280 150 Q 200 60 70 95"
+                                    stroke="url(#route)"
+                                    stroke-width="2"
+                                    fill="none"
+                                    stroke-dasharray="4 4"
+                                >
+                                    <animate
+                                        attributeName="stroke-dashoffset"
+                                        from="0"
+                                        to="-160"
+                                        dur="6s"
+                                        repeatCount="indefinite"
+                                    />
+                                </path>
+                                <g>
+                                    <circle
+                                        cx="280"
+                                        cy="150"
+                                        r="6"
+                                        fill="#ff2bd1"
+                                    >
+                                        <animate
+                                            attributeName="r"
+                                            values="6;9;6"
+                                            dur="2s"
+                                            repeatCount="indefinite"
+                                        />
+                                    </circle>
+                                    <circle
+                                        cx="280"
+                                        cy="150"
+                                        r="14"
+                                        fill="none"
+                                        stroke="#ff2bd1"
+                                        stroke-width="0.5"
+                                        opacity="0.6"
+                                    />
+                                    <text
+                                        x="290"
+                                        y="155"
+                                        fill="#ff2bd1"
+                                        font-family="VT323, monospace"
+                                        font-size="16"
+                                    >
+                                        VENEZIA - IT
+                                    </text>
+                                    <text
+                                        x="290"
+                                        y="170"
+                                        fill="#8a86b8"
+                                        font-family="JetBrains Mono, monospace"
+                                        font-size="9"
+                                    >
+                                        45.4408° N, 12.3155° E
+                                    </text>
+                                </g>
+                                <g>
+                                    <circle
+                                        cx="70"
+                                        cy="95"
+                                        r="6"
+                                        fill="#00f0ff"
+                                    >
+                                        <animate
+                                            attributeName="r"
+                                            values="6;9;6"
+                                            dur="2s"
+                                            begin="1s"
+                                            repeatCount="indefinite"
+                                        />
+                                    </circle>
+                                    <circle
+                                        cx="70"
+                                        cy="95"
+                                        r="14"
+                                        fill="none"
+                                        stroke="#00f0ff"
+                                        stroke-width="0.5"
+                                        opacity="0.6"
+                                    />
+                                    <text
+                                        x="6"
+                                        y="80"
+                                        fill="#00f0ff"
+                                        font-family="VT323, monospace"
+                                        font-size="16"
+                                    >
+                                        DUBLIN - IE
+                                    </text>
+                                    <text
+                                        x="6"
+                                        y="65"
+                                        fill="#8a86b8"
+                                        font-family="JetBrains Mono, monospace"
+                                        font-size="9"
+                                    >
+                                        53.3498° N, -6.2603° W
+                                    </text>
+                                </g>
+                                <text
+                                    x="200"
+                                    y="40"
+                                    fill="#c6ff3d"
+                                    font-family="VT323, monospace"
+                                    font-size="14"
+                                    text-anchor="middle"
+                                >
+                                    ~ 1,720 KM TRAVELED
+                                </text>
+                                <g transform="translate(360, 215)">
+                                    <circle
+                                        r="14"
+                                        fill="none"
+                                        stroke="#8a86b8"
+                                        stroke-width="0.5"
+                                    />
+                                    <text
+                                        y="-16"
+                                        text-anchor="middle"
+                                        fill="#8a86b8"
+                                        font-family="VT323, monospace"
+                                        font-size="10"
+                                    >
+                                        N
+                                    </text>
+                                    <line
+                                        x1="0"
+                                        y1="-12"
+                                        x2="0"
+                                        y2="12"
+                                        stroke="#ff2bd1"
+                                        stroke-width="1"
+                                    />
+                                    <line
+                                        x1="-12"
+                                        y1="0"
+                                        x2="12"
+                                        y2="0"
+                                        stroke="#8a86b8"
+                                        stroke-width="0.5"
+                                    />
+                                </g>
+                            </svg>
+                            <div class="legend">
+                                <span class="from">● ORIGIN</span>
+                                <span>STATUS: relocated</span>
+                                <span class="to">● CURRENT</span>
+                            </div>
+                        </div>
+
+                        <div class="lang-stats">
+                            <h3>// languages.json</h3>
+                            <div class="lang-row">
+                                <div class="name">
+                                    <span class="flag">🇮🇹</span>ITALIAN
+                                </div>
+                                <div class="lang-bar">
+                                    <i style="width: 100%"></i>
+                                </div>
+                                <div class="lvl">100</div>
+                            </div>
+                            <div class="lang-row">
+                                <div class="name">
+                                    <span class="flag">🇮🇪</span>ENGLISH
+                                </div>
+                                <div class="lang-bar">
+                                    <i style="width: 100%"></i>
+                                </div>
+                                <div class="lvl">100</div>
+                            </div>
+                            <div class="lang-row">
+                                <div class="name">⌨ PYTHON</div>
+                                <div class="lang-bar">
+                                    <i style="width: 88%"></i>
+                                </div>
+                                <div class="lvl">88</div>
+                            </div>
+                            <div class="lang-row">
+                                <div class="name">⌨ TS / JS</div>
+                                <div class="lang-bar">
+                                    <i style="width: 85%"></i>
+                                </div>
+                                <div class="lvl">85</div>
+                            </div>
+                            <div class="lang-row">
+                                <div class="name">⌨ C / C++</div>
+                                <div class="lang-bar">
+                                    <i style="width: 75%"></i>
+                                </div>
+                                <div class="lvl">75</div>
+                            </div>
+                            <div class="lang-row">
+                                <div class="name">⌨ JAVA</div>
+                                <div class="lang-bar">
+                                    <i style="width: 72%"></i>
+                                </div>
+                                <div class="lvl">72</div>
+                            </div>
+                            <div class="lang-row">
+                                <div class="name">⌨ SQL</div>
+                                <div class="lang-bar">
+                                    <i style="width: 78%"></i>
+                                </div>
+                                <div class="lvl">78</div>
+                            </div>
+                            <div class="lang-row">
+                                <div class="name">⌨ BASH / LINUX</div>
+                                <div class="lang-bar">
+                                    <i style="width: 80%"></i>
+                                </div>
+                                <div class="lvl">80</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- EDUCATION -->
+            <section id="education" class="reveal">
+                <div class="section-head">
+                    <span class="num">02</span>
+                    <h2>Quest Log</h2>
+                    <span class="meta">campaign: <span>education</span></span>
+                </div>
+
+                <div class="timeline">
+                    <div class="quest active">
+                        <div class="quest-head">
+                            <div class="quest-title">
+                                ▶ BSc Computer Science
+                            </div>
+                            <div class="quest-date">Oct 2022 – Expected 2028</div>
+                        </div>
+                        <div class="quest-loc">Trinity College Dublin · IE</div>
+                        <p class="quest-desc">
+                            Integrated CS at Trinity. Algorithms, cybersecurity,
+                            software engineering, systems and the rest of the
+                            canon. The kind of degree that quietly rewires how
+                            you see every digital thing.
+                        </p>
+                        <span class="quest-tag">algorithms</span>
+                        <span class="quest-tag cyan">cybersecurity</span>
+                        <span class="quest-tag lime">software eng</span>
+                        <span class="quest-tag">systems</span>
+                    </div>
+
+                    <div class="quest active">
+                        <div class="quest-head">
+                            <div class="quest-title">
+                                ▶ Self-Study - Cybersecurity
+                            </div>
+                            <div class="quest-date">2022 – Present</div>
+                        </div>
+                        <div class="quest-loc">Independent · Ongoing</div>
+                        <p class="quest-desc">
+                            A long-running personal track aimed at
+                            industry-grade cybersecurity certifications. CTFs,
+                            labs, write-ups, and the slow accumulation of an
+                            attacker's mindset alongside a defender's
+                            discipline.
+                        </p>
+                        <span class="quest-tag cyan">cybersecurity</span>
+                        <span class="quest-tag">network security</span>
+                    </div>
+
+                    <div class="quest complete">
+                        <div class="quest-head">
+                            <div class="quest-title">
+                                ✓ Cisco Networking Academy - CCNA
+                            </div>
+                            <div class="quest-date">2020 – 2022</div>
+                        </div>
+                        <div class="quest-loc">
+                            Cisco Networking Academy · 100/100 with merit
+                        </div>
+                        <p class="quest-desc">
+                            CCNA certification with letter of merit. Networking
+                            fundamentals, security fundamentals, and the kind of
+                            layered understanding that makes the rest of the
+                            stack click into place.
+                        </p>
+                        <span class="quest-tag lime">networking</span>
+                        <span class="quest-tag cyan">network security</span>
+                    </div>
+
+                    <div class="quest complete">
+                        <div class="quest-head">
+                            <div class="quest-title">
+                                ✓ Diploma - Computer Systems, Networking &amp;
+                                Telecoms
+                            </div>
+                            <div class="quest-date">Sep 2017 - Jun 2022</div>
+                        </div>
+                        <div class="quest-loc">Enrico Fermi Venezia · IT</div>
+                        <p class="quest-desc">
+                            The five-year Italian technical-school arc. Chess
+                            tournaments, CS projects at the local nautical
+                            exhibition, web dev showcases, and a 1st-place team
+                            win in the regional School Garden Renewal contest.
+                            Final boss: defeated.
+                        </p>
+                        <span class="quest-tag">programming</span>
+                        <span class="quest-tag cyan">electronics</span>
+                        <span class="quest-tag lime">teamwork</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SKILL TREE -->
+            <section id="skills" class="reveal">
+                <div class="section-head">
+                    <span class="num">03</span>
+                    <h2>Skill Tree</h2>
+                    <span class="meta">spent: <span>21 / ∞ pts</span></span>
+                </div>
+
+                <div class="skill-tree">
+                    <svg
+                        viewBox="0 0 760 380"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <g stroke-width="1.5">
+                            <path
+                                class="skill-link"
+                                d="M 380 60 L 160 140"
+                                stroke="#ff2bd1"
+                            />
+                            <path
+                                class="skill-link"
+                                d="M 380 60 L 380 140"
+                                stroke="#00f0ff"
+                            />
+                            <path
+                                class="skill-link"
+                                d="M 380 60 L 600 140"
+                                stroke="#c6ff3d"
+                            />
+                            <path
+                                class="skill-link"
+                                d="M 160 140 L 80 230"
+                                stroke="#ff2bd1"
+                            />
+                            <path
+                                class="skill-link"
+                                d="M 160 140 L 240 230"
+                                stroke="#ff2bd1"
+                            />
+                            <path
+                                class="skill-link"
+                                d="M 80 230 L 80 320"
+                                stroke="#ff2bd1"
+                            />
+                            <path
+                                class="skill-link"
+                                d="M 240 230 L 240 320"
+                                stroke="#ff2bd1"
+                            />
+                            <path
+                                class="skill-link"
+                                d="M 380 140 L 340 230"
+                                stroke="#00f0ff"
+                            />
+                            <path
+                                class="skill-link"
+                                d="M 380 140 L 440 230"
+                                stroke="#00f0ff"
+                            />
+                            <path
+                                class="skill-link"
+                                d="M 340 230 L 340 320"
+                                stroke="#00f0ff"
+                            />
+                            <path
+                                class="skill-link"
+                                d="M 440 230 L 440 320"
+                                stroke="#00f0ff"
+                            />
+                            <path
+                                class="skill-link"
+                                d="M 600 140 L 540 230"
+                                stroke="#c6ff3d"
+                            />
+                            <path
+                                class="skill-link"
+                                d="M 600 140 L 680 230"
+                                stroke="#c6ff3d"
+                            />
+                            <path
+                                class="skill-link"
+                                d="M 540 230 L 540 320"
+                                stroke="#c6ff3d"
+                            />
+                            <path
+                                class="skill-link"
+                                d="M 680 230 L 680 320"
+                                stroke="#c6ff3d"
+                            />
+                        </g>
+
+                        <g class="skill-node" color="#c6ff3d">
+                            <circle
+                                cx="380"
+                                cy="60"
+                                r="22"
+                                fill="#0d0820"
+                                stroke="#c6ff3d"
+                                stroke-width="2"
+                            />
+                            <text x="380" y="64">CS</text>
+                        </g>
+                        <g class="skill-node" color="#ff2bd1">
+                            <circle
+                                cx="160"
+                                cy="140"
+                                r="20"
+                                fill="#1a0e2e"
+                                stroke="#ff2bd1"
+                                stroke-width="2"
+                            />
+                            <text x="160" y="144" fill="#ff2bd1">SEC</text>
+                        </g>
+                        <g class="skill-node" color="#00f0ff">
+                            <circle
+                                cx="380"
+                                cy="140"
+                                r="20"
+                                fill="#1a0e2e"
+                                stroke="#00f0ff"
+                                stroke-width="2"
+                            />
+                            <text x="380" y="144" fill="#00f0ff">SYS</text>
+                        </g>
+                        <g class="skill-node" color="#c6ff3d">
+                            <circle
+                                cx="600"
+                                cy="140"
+                                r="20"
+                                fill="#1a0e2e"
+                                stroke="#c6ff3d"
+                                stroke-width="2"
+                            />
+                            <text x="600" y="144" fill="#c6ff3d">SWE</text>
+                        </g>
+
+                        <g class="skill-node" color="#ff2bd1">
+                            <circle
+                                cx="80"
+                                cy="230"
+                                r="18"
+                                fill="#0d0820"
+                                stroke="#ff2bd1"
+                                stroke-width="1.5"
+                            />
+                            <text x="80" y="234">Web</text>
+                            <text x="80" y="260" class="lvl">lv 8</text>
+                        </g>
+                        <g class="skill-node" color="#ff2bd1">
+                            <circle
+                                cx="240"
+                                cy="230"
+                                r="18"
+                                fill="#0d0820"
+                                stroke="#ff2bd1"
+                                stroke-width="1.5"
+                            />
+                            <text x="240" y="234">CTF</text>
+                            <text x="240" y="260" class="lvl">lv 7</text>
+                        </g>
+                        <g class="skill-node" color="#ff2bd1">
+                            <circle
+                                cx="80"
+                                cy="320"
+                                r="16"
+                                fill="#0d0820"
+                                stroke="#ff2bd1"
+                                stroke-width="1.5"
+                            />
+                            <text x="80" y="324">Bounty</text>
+                            <text x="80" y="350" class="lvl">lv 6</text>
+                        </g>
+                        <g class="skill-node" color="#ff2bd1">
+                            <circle
+                                cx="240"
+                                cy="320"
+                                r="16"
+                                fill="#0d0820"
+                                stroke="#ff2bd1"
+                                stroke-width="1.5"
+                            />
+                            <text x="240" y="324">RevEng</text>
+                            <text x="240" y="350" class="lvl">lv 5</text>
+                        </g>
+
+                        <g class="skill-node" color="#00f0ff">
+                            <circle
+                                cx="340"
+                                cy="230"
+                                r="18"
+                                fill="#0d0820"
+                                stroke="#00f0ff"
+                                stroke-width="1.5"
+                            />
+                            <text x="340" y="234">Net</text>
+                            <text x="340" y="260" class="lvl">lv 8</text>
+                        </g>
+                        <g class="skill-node" color="#00f0ff">
+                            <circle
+                                cx="440"
+                                cy="230"
+                                r="18"
+                                fill="#0d0820"
+                                stroke="#00f0ff"
+                                stroke-width="1.5"
+                            />
+                            <text x="440" y="234">Linux</text>
+                            <text x="440" y="260" class="lvl">lv 7</text>
+                        </g>
+                        <g class="skill-node" color="#00f0ff">
+                            <circle
+                                cx="340"
+                                cy="320"
+                                r="16"
+                                fill="#0d0820"
+                                stroke="#00f0ff"
+                                stroke-width="1.5"
+                            />
+                            <text x="340" y="324">CCNA</text>
+                            <text x="340" y="350" class="lvl">lv 9</text>
+                        </g>
+                        <g class="skill-node" color="#00f0ff">
+                            <circle
+                                cx="440"
+                                cy="320"
+                                r="16"
+                                fill="#0d0820"
+                                stroke="#00f0ff"
+                                stroke-width="1.5"
+                            />
+                            <text x="440" y="324">Docker</text>
+                            <text x="440" y="350" class="lvl">lv 5</text>
+                        </g>
+
+                        <g class="skill-node" color="#c6ff3d">
+                            <circle
+                                cx="540"
+                                cy="230"
+                                r="18"
+                                fill="#0d0820"
+                                stroke="#c6ff3d"
+                                stroke-width="1.5"
+                            />
+                            <text x="540" y="234">React</text>
+                            <text x="540" y="260" class="lvl">lv 7</text>
+                        </g>
+                        <g class="skill-node" color="#c6ff3d">
+                            <circle
+                                cx="680"
+                                cy="230"
+                                r="18"
+                                fill="#0d0820"
+                                stroke="#c6ff3d"
+                                stroke-width="1.5"
+                            />
+                            <text x="680" y="234">Node</text>
+                            <text x="680" y="260" class="lvl">lv 7</text>
+                        </g>
+                        <g class="skill-node" color="#c6ff3d">
+                            <circle
+                                cx="540"
+                                cy="320"
+                                r="16"
+                                fill="#0d0820"
+                                stroke="#c6ff3d"
+                                stroke-width="1.5"
+                            />
+                            <text x="540" y="324">Mongo</text>
+                            <text x="540" y="350" class="lvl">lv 6</text>
+                        </g>
+                        <g class="skill-node" color="#c6ff3d">
+                            <circle
+                                cx="680"
+                                cy="320"
+                                r="16"
+                                fill="#0d0820"
+                                stroke="#c6ff3d"
+                                stroke-width="1.5"
+                            />
+                            <text x="680" y="324">AWS</text>
+                            <text x="680" y="350" class="lvl">lv 5</text>
+                        </g>
+                    </svg>
+
+                    <div class="legend-tree">
+                        <span
+                            ><i style="background: #ff2bd1"></i>SECURITY
+                            PATH</span
+                        >
+                        <span
+                            ><i style="background: #00f0ff"></i>SYSTEMS &amp;
+                            NETWORK PATH</span
+                        >
+                        <span
+                            ><i style="background: #c6ff3d"></i>SOFTWARE ENG
+                            PATH</span
+                        >
+                    </div>
+                </div>
+            </section>
+
+            <!-- INVENTORY -->
+            <section id="projects" class="reveal">
+                <div class="section-head">
+                    <span class="num">04</span>
+                    <h2>Inventory</h2>
+                    <span class="meta"
+                        >items found: <span id="proj-count">12</span></span
+                    >
+                </div>
+
+                <div class="inv-bar" id="filters">
+                    <button class="filter active" data-f="all">▾ ALL</button>
+                    <button class="filter" data-f="ctf">
+                        ▾ CTF / SECURITY
+                    </button>
+                    <button class="filter" data-f="hack">▾ HACKATHONS</button>
+                    <button class="filter" data-f="product">▾ PRODUCTS</button>
+                    <button class="filter" data-f="research">▾ RESEARCH</button>
+                    <button class="filter" data-f="community">
+                        ▾ COMMUNITY
+                    </button>
+                </div>
+
+                <div class="projects-grid" id="grid">
+                    <article class="item legendary" data-cat="hack">
+                        <div class="rarity">★ LEGENDARY</div>
+                        <div class="icon">🥉</div>
+                        <h3>HUAWEI TECH ARENA 2025</h3>
+                        <div class="type">+5 hackathon / 3rd place</div>
+                        <p>
+                            Team <b>HOT POTTERS</b> from TCD, claimed 3rd place
+                            at the Huawei hackathon weekend. AI for education,
+                            late-night breakthroughs, mentor-fuelled madness,
+                            and the kind of team rhythm that only shows up when
+                            everyone's just unhinged enough to believe in the
+                            impossible.
+                        </p>
+                        <div class="stack">
+                            <span class="chip">AI</span
+                            ><span class="chip">Teamwork</span
+                            ><span class="chip">Edu</span>
+                        </div>
+                    </article>
+
+                    <article class="item legendary" data-cat="community">
+                        <div class="rarity">★ LEGENDARY</div>
+                        <div class="icon">🐺</div>
+                        <h3>THE WILD HUNT PROJECT</h3>
+                        <div class="type">+5 founder / community</div>
+                        <p>
+                            A bold manifest to build a worldwide community of
+                            problem-hunters, united by the thrill of hunting
+                            down problems and forging solutions that shape the
+                            future. Founded Nov 2024, ongoing, full-time
+                            obsession.
+                        </p>
+                        <div class="stack">
+                            <span class="chip">Founder</span
+                            ><span class="chip">Community</span
+                            ><span class="chip">Web</span>
+                        </div>
+                    </article>
+
+                    <article class="item legendary" data-cat="research">
+                        <div class="rarity">★ LEGENDARY</div>
+                        <div class="icon">🛰️</div>
+                        <h3>NASA ASTROPI</h3>
+                        <div class="type">+5 research / ISS</div>
+                        <p>
+                            Python experiments running aboard the
+                            International Space Station as part of the ESA
+                            AstroPi programme. Code that, briefly, lived in
+                            orbit. Hard to top that for a deployment story.
+                        </p>
+                        <div class="stack">
+                            <span class="chip">Python</span
+                            ><span class="chip">ESA</span
+                            ><span class="chip">ISS</span>
+                        </div>
+                    </article>
+
+                    <article class="item epic" data-cat="ctf">
+                        <div class="rarity">★ EPIC</div>
+                        <div class="icon">🏴‍☠️</div>
+                        <h3>FETCH THE FLAG 2026</h3>
+                        <div class="type">+4 ctf / Snyk</div>
+                        <p>
+                            Snyk's CTF, Feb 2026. AI puzzles that made you
+                            question whether the model was clever or just
+                            cheeky. Crypto with zero sympathy for your feelings.
+                            Reverse engineering with oven gloves on. PWN as
+                            organised chaos with style.
+                        </p>
+                        <div class="stack">
+                            <span class="chip">Web</span
+                            ><span class="chip">PWN</span
+                            ><span class="chip">Forensics</span>
+                        </div>
+                    </article>
+
+                    <article class="item epic" data-cat="ctf">
+                        <div class="rarity">★ EPIC</div>
+                        <div class="icon">❤️</div>
+                        <h3>LOVE AT FIRST BREACH 2026</h3>
+                        <div class="type">+4 ctf / THM</div>
+                        <p>
+                            TryHackMe Valentine's CTF, fake dating apps, secret
+                            messages, digital love letters, all hiding serious
+                            flaws. Forging cryptographic signatures and sneaking
+                            rogue files past chat apps. Maybe double-check who's
+                            really sending you that Valentine.
+                        </p>
+                        <div class="stack">
+                            <span class="chip">Crypto</span
+                            ><span class="chip">Web</span
+                            ><span class="chip">OSINT</span>
+                        </div>
+                    </article>
+
+                    <article class="item epic" data-cat="ctf">
+                        <div class="rarity">★ EPIC</div>
+                        <div class="icon">🎄</div>
+                        <h3>HACK THE BOX UNI CTF 2025</h3>
+                        <div class="type">+4 ctf / christmas</div>
+                        <p>
+                            The Hack The Box Christmas University Challenge.
+                            RevEng whispering its secrets, web exploits
+                            demanding finesse, crypto teasing patterns, OSINT,
+                            coding and PWN all playing their part. Wolfish
+                            satisfaction when the city's layout finally makes
+                            sense.
+                        </p>
+                        <div class="stack">
+                            <span class="chip">RevEng</span
+                            ><span class="chip">Crypto</span
+                            ><span class="chip">PWN</span>
+                        </div>
+                    </article>
+
+                    <article class="item epic" data-cat="ctf">
+                        <div class="rarity">★ EPIC</div>
+                        <div class="icon">🎁</div>
+                        <h3>ADVENT OF CYBER 2025</h3>
+                        <div class="type">+4 ctf / TryHackMe</div>
+                        <p>
+                            A month-long expedition: Linux CLI mischief,
+                            phishing psychology, SIEM detective work, IDOR
+                            trouble, malware under the microscope, prompt
+                            injection mind-benders, YARA rule poetry, and curl
+                            being far more dangerous than it looks.
+                        </p>
+                        <div class="stack">
+                            <span class="chip">SIEM</span
+                            ><span class="chip">Forensics</span
+                            ><span class="chip">YARA</span>
+                        </div>
+                    </article>
+
+                    <article class="item epic" data-cat="ctf">
+                        <div class="rarity">★ EPIC</div>
+                        <div class="icon">🏹</div>
+                        <h3>HUNTRESS CTF 2025</h3>
+                        <div class="type">+4 ctf / hunt</div>
+                        <p>
+                            October 2025, diving headfirst into web hacking,
+                            digital forensics, malware analysis, OSINT, RevEng
+                            and binary exploitation. Each challenge a riddle
+                            waiting to be untangled. Stay sharp, keep hunting,
+                            never stop learning.
+                        </p>
+                        <div class="stack">
+                            <span class="chip">Malware</span
+                            ><span class="chip">Binary</span
+                            ><span class="chip">OSINT</span>
+                        </div>
+                    </article>
+
+                    <article class="item rare" data-cat="product">
+                        <div class="rarity">◆ RARE</div>
+                        <div class="icon">🌍</div>
+                        <h3>OLY</h3>
+                        <div class="type">+3 product / community</div>
+                        <p>
+                            A cultural platform for expats, connect, trade and
+                            thrive within communities abroad. Buying, selling,
+                            currency, jobs, housing, life in a new country,
+                            rooted in the culture you know and love. Currently
+                            in development.
+                        </p>
+                        <div class="stack">
+                            <span class="chip">React Native</span
+                            ><span class="chip">Teamwork</span>
+                        </div>
+                    </article>
+
+                    <article class="item rare" data-cat="product">
+                        <div class="rarity">◆ RARE</div>
+                        <div class="icon">🔍</div>
+                        <h3>REVIEW LENS</h3>
+                        <div class="type">+3 software eng / Trinity × Dell</div>
+                        <p>
+                            Annual SWE collaboration between TCD and Dell
+                            Technologies. Cuts through hundreds of product
+                            reviews using sentiment analysis to deliver a clean
+                            summary, score and pros/cons. 12 weeks, final
+                            presentation at Dell HQ.
+                        </p>
+                        <div class="stack">
+                            <span class="chip">React</span
+                            ><span class="chip">TS</span
+                            ><span class="chip">Mongo</span
+                            ><span class="chip">AWS</span>
+                        </div>
+                    </article>
+
+                    <article class="item rare" data-cat="hack">
+                        <div class="rarity">◆ RARE</div>
+                        <div class="icon">💚</div>
+                        <h3>MOODMATE — ZEUSS HACKATHON</h3>
+                        <div class="type">+3 hackathon / social impact</div>
+                        <p>
+                            ZEUSS Social Impact Hackathon 2025, a gamified
+                            mental wellness app for young people. Mood tracking,
+                            safe journalling, a digital pet companion and
+                            transparent statistical analysis. Aligned with UN
+                            SDG 3: Good Health and Wellbeing.
+                        </p>
+                        <div class="stack">
+                            <span class="chip">Mobile</span
+                            ><span class="chip">UX</span
+                            ><span class="chip">Stats</span>
+                        </div>
+                    </article>
+
+                    <article class="item rare" data-cat="hack">
+                        <div class="rarity">◆ RARE</div>
+                        <div class="icon">🌐</div>
+                        <h3>GLOBAL HACK WEEK 2025</h3>
+                        <div class="type">+2 community / OSS</div>
+                        <p>
+                            MLH's Global Hack Week: Open Source, a full week of
+                            building, technical challenges, and contributing to
+                            open-source innovation alongside developers
+                            worldwide. Coding, curiosity, community spirit.
+                        </p>
+                        <div class="stack">
+                            <span class="chip">Open Source</span
+                            ><span class="chip">SWE</span>
+                        </div>
+                    </article>
+
+                    <article class="item common" data-cat="community">
+                        <div class="rarity">○ COMMON</div>
+                        <div class="icon">🔥</div>
+                        <h3>WHP CHALLENGE 2025</h3>
+                        <div class="type">+2 community</div>
+                        <p>
+                            "A Hunt of Fire and Fury", a series of challenges to
+                            stimulate interest in the art of problem-hunting.
+                            Submissions on the WHP site, constructive feedback
+                            feeding future editions.
+                        </p>
+                        <div class="stack">
+                            <span class="chip">Community</span
+                            ><span class="chip">Challenges</span>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <!-- GUILD / EXPERIENCE -->
+            <section id="experience" class="reveal">
+                <div class="section-head">
+                    <span class="num">05</span>
+                    <h2>Guild Record</h2>
+                    <span class="meta"
+                        >role: <span>researcher → founder</span></span
+                    >
+                </div>
+
+                <div class="guild-grid">
+                    <div class="guild">
+                        <div class="crest">①</div>
+                        <div class="role">// research intern</div>
+                        <div class="org">Huawei Ireland Research Centre</div>
+                        <div class="span">
+                            Mar 2026 – Present · Dublin, IE · On-site
+                        </div>
+                        <ul>
+                            <li>
+                                Researching <b>Autonomous Networks</b> for a
+                                better-connected future. 💻🐺
+                            </li>
+                            <li>
+                                Sitting at the frontier of how the world stays
+                                connected.
+                            </li>
+                            <li>
+                                Skills: research projects, research methodology,
+                                applied networking.
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="guild">
+                        <div class="crest">②</div>
+                        <div class="role">// security researcher</div>
+                        <div class="org">Freelance</div>
+                        <div class="span">
+                            Jan 2026 – Present · Dublin, IE · Remote
+                        </div>
+                        <ul>
+                            <li>
+                                Junior freelance work on identifying, analysing
+                                and responsibly disclosing vulnerabilities.
+                            </li>
+                            <li>
+                                Public &amp; private bug bounty programmes on
+                                HackerOne and Bugcrowd, web app flaws,
+                                misconfigs, logic issues.
+                            </li>
+                            <li>
+                                Capture The Flag training on Hack The Box and
+                                TryHackMe, web, networking, Linux, enumeration,
+                                exploitation, privilege escalation.
+                            </li>
+                            <li>
+                                Continuous learning, disciplined research,
+                                ethical security testing. 🚀
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="guild">
+                        <div class="crest">③</div>
+                        <div class="role">// founder</div>
+                        <div class="org">Wild Hunt Project</div>
+                        <div class="span">
+                            Dec 2024 – Present · Planet Earth · Hybrid ·
+                            Full-time
+                        </div>
+                        <ul>
+                            <li>
+                                Founded the WHP, a worldwide community of
+                                problem-hunters.
+                            </li>
+                            <li>
+                                Built around the thrill of hunting down problems
+                                and forging solutions that shape the future.
+                            </li>
+                            <li>
+                                Running the WHP Challenge series and the
+                                project's website.
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="guild">
+                        <div class="crest">④</div>
+                        <div class="role">// IT freelancer</div>
+                        <div class="org">Self-employed</div>
+                        <div class="span">
+                            2023 – Present · Dublin, IE · Hybrid
+                        </div>
+                        <ul>
+                            <li>
+                                On-demand tech support, IT consultations,
+                                private IT contracting.
+                            </li>
+                            <li>
+                                IT consulting, critical thinking, client
+                                communication across EN/IT.
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="guild">
+                        <div class="crest">⑤</div>
+                        <div class="role">// engineering apprentice</div>
+                        <div class="org">Dell Technologies</div>
+                        <div class="span">
+                            Jan 2025 – Apr 2025 · Dublin, IE · Remote
+                        </div>
+                        <ul>
+                            <li>
+                                Software engineering team project, TCD × Dell
+                                collaboration.
+                            </li>
+                            <li>
+                                Delivered Review Lens (see Inventory) in a
+                                12-week sprint with a final presentation at Dell
+                                HQ.
+                            </li>
+                            <li>
+                                Sharpened security mindset across the SDLC.
+                                Maximum effort, maximum results.
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="guild">
+                        <div class="crest">⑥</div>
+                        <div class="role">// IT helpdesk</div>
+                        <div class="org">ATC Language Schools</div>
+                        <div class="span">
+                            Jul 2022 – Sep 2022 · Dublin, IE · On-site
+                        </div>
+                        <ul>
+                            <li>
+                                IT helpdesk for the school summer centre,
+                                assigned to the principal's office.
+                            </li>
+                            <li>
+                                Data analysis, Google Sheets, on-the-fly
+                                debugging for actual humans.
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TROPHIES -->
+            <section id="achievements" class="reveal">
+                <div class="section-head">
+                    <span class="num">06</span>
+                    <h2>Trophy Hall</h2>
+                    <span class="meta">unlocked: <span>12 / 15</span></span>
+                </div>
+
+                <div class="ach-grid">
+                    <div class="trophy">
+                        <div class="ico">🥉</div>
+                        <div class="ach-name">Huawei 3rd Place</div>
+                        <div class="desc">
+                            Top 3 at Huawei Tech Arena 2025 - Hot Potters.
+                        </div>
+                        <div class="pts">+150</div>
+                    </div>
+                    <div class="trophy">
+                        <div class="ico">🐺</div>
+                        <div class="ach-name">Founded a Pack</div>
+                        <div class="desc">Created the Wild Hunt Project.</div>
+                        <div class="pts">+100</div>
+                    </div>
+                    <div class="trophy">
+                        <div class="ico">🎓</div>
+                        <div class="ach-name">Trinity Enrolled</div>
+                        <div class="desc">Started CS at TCD.</div>
+                        <div class="pts">+50</div>
+                    </div>
+                    <div class="trophy">
+                        <div class="ico">📜</div>
+                        <div class="ach-name">CCNA — 100/100</div>
+                        <div class="desc">
+                            Cisco Networking Academy with merit.
+                        </div>
+                        <div class="pts">+60</div>
+                    </div>
+                    <div class="trophy">
+                        <div class="ico">📚</div>
+                        <div class="ach-name">Diploma di Maturità</div>
+                        <div class="desc">Survived the Esame di Stato.</div>
+                        <div class="pts">+40</div>
+                    </div>
+                    <div class="trophy">
+                        <div class="ico">🤖</div>
+                        <div class="ach-name">Copilot Prompt Cert</div>
+                        <div class="desc">
+                            GitHub Copilot Prompt cert via Wilco.
+                        </div>
+                        <div class="pts">+15</div>
+                    </div>
+                    <div class="trophy">
+                        <div class="ico">🌐</div>
+                        <div class="ach-name">Bilingual Buff</div>
+                        <div class="desc">Native in IT &amp; EN.</div>
+                        <div class="pts">+25</div>
+                    </div>
+                    <div class="trophy">
+                        <div class="ico">🏴‍☠️</div>
+                        <div class="ach-name">CTF Veteran</div>
+                        <div class="desc">
+                            Completed multiple major CTFs in one year.
+                        </div>
+                        <div class="pts">+50</div>
+                    </div>
+                    <div class="trophy">
+                        <div class="ico">🐧</div>
+                        <div class="ach-name">Penguin Pact</div>
+                        <div class="desc">Daily-drives a Linux machine.</div>
+                        <div class="pts">+20</div>
+                    </div>
+                    <div class="trophy">
+                        <div class="ico">🍝</div>
+                        <div class="ach-name">Carbonara, Properly</div>
+                        <div class="desc">No cream. Ever.</div>
+                        <div class="pts">+5</div>
+                    </div>
+                    <div class="trophy">
+                        <div class="ico">🌱</div>
+                        <div class="ach-name">Garden Champion</div>
+                        <div class="desc">
+                            1st place - School Garden Renewal contest.
+                        </div>
+                        <div class="pts">+10</div>
+                    </div>
+                    <div class="trophy">
+                        <div class="ico">🛰️</div>
+                        <div class="ach-name">Code in Orbit</div>
+                        <div class="desc">
+                            Python ran aboard the ISS via NASA AstroPi / ESA.
+                        </div>
+                        <div class="pts">+125</div>
+                    </div>
+                    <div class="trophy locked">
+                        <div class="ico">🥇</div>
+                        <div class="ach-name">First Big OSS PR</div>
+                        <div class="desc">Get a non-trivial PR merged.</div>
+                        <div class="pts">+50</div>
+                    </div>
+                    <div class="trophy locked">
+                        <div class="ico">🎖️</div>
+                        <div class="ach-name">B.A. Acquired</div>
+                        <div class="desc">Defeat the final-year boss.</div>
+                        <div class="pts">+200</div>
+                    </div>
+                    <div class="trophy locked">
+                        <div class="ico">🚀</div>
+                        <div class="ach-name">Ship Something Real</div>
+                        <div class="desc">
+                            Launch a product with real users.
+                        </div>
+                        <div class="pts">+150</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SOCIETIES -->
+            <section id="guilds" class="reveal">
+                <div class="section-head">
+                    <span class="num">07</span>
+                    <h2>Societies</h2>
+                    <span class="meta"
+                        >campus: <span>Trinity College Dublin</span></span
+                    >
+                </div>
+
+                <div class="soc-grid">
+                    <div class="soc">
+                        <h4>♟ Chess Society TCD</h4>
+                        <div class="yr">Member - 2025 - Present</div>
+                        <p>
+                            Yes I know how to play. No I'm not a grandmaster.
+                            🐺🙃
+                        </p>
+                    </div>
+                    <div class="soc">
+                        <h4>🚀 Entrepreneurial Society TCD</h4>
+                        <div class="yr">Member · 2025 – Present</div>
+                        <p>Hunting problems. 🐺</p>
+                    </div>
+                    <div class="soc">
+                        <h4>🏴‍☠️ Pirate Society TCD</h4>
+                        <div class="yr">Member · 2025 – Present</div>
+                        <p>
+                            Cybersecurity-oriented society and a kingdom of
+                            geeks. 🐺💻🌌✌️🦜
+                        </p>
+                    </div>
+                    <div class="soc">
+                        <h4>🌌 Space Society TCD</h4>
+                        <div class="yr">Member · 2025 – Present</div>
+                        <p>Stargazing and rocket launches. 🚀🌌🐺</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TERMINAL -->
+            <section id="contact" class="reveal">
+                <div class="section-head">
+                    <span class="num">08</span>
+                    <h2>Open Comms</h2>
+                    <span class="meta"
+                        >protocol: <span>tcp/handshake</span></span
+                    >
+                </div>
+
+                <div class="terminal">
+                    <div class="terminal-bar">
+                        <div class="dots"><i></i><i></i><i></i></div>
+                        <span>lupus@portfolio:~ — comms.sh</span>
+                    </div>
+                    <div class="terminal-body" id="termBody">
+                        <div class="term-line">
+                            <span class="ok">[OK]</span>
+                            <span class="info"
+                                >handshake complete with visitor.</span
+                            >
+                        </div>
+                        <div class="term-line">
+                            <span class="info"
+                                >welcome to the wolf den. type</span
+                            >
+                            <span class="warn">help</span>
+                            <span class="info">to see commands.</span>
+                        </div>
+                        <div class="term-line">&nbsp;</div>
+                    </div>
+                    <div class="term-input">
+                        <span class="prompt">visitor@lupus:~$</span>
+                        <input
+                            id="termInput"
+                            autocomplete="off"
+                            spellcheck="false"
+                        />
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            © 2026 LUPUS.EXE — built with <span class="heart">♥</span> in
+            Dublin, born in Venezia · view-source: encouraged
+            <div class="signed">
+                Signed,<br />Your Friendly Neighbourhood Wolf 🐺
+            </div>
+            <div class="konami">↑ ↑ ↓ ↓ ← → ← → B A &nbsp; // try it</div>
+        </footer>
+
+        <div id="konami-overlay">
+            <h2>+ 9999 XP</h2>
+            <p>
+                Cheat code accepted.<br />The Wolf approves.<br />"True mastery
+                is curiosity that never logs off."
+            </p>
+            <div class="close">[ click anywhere to close ]</div>
+        </div>
+
+        <script>
+            // BOOT
+            const bootLog = document.getElementById("boot-log");
+            const bootLines = [
+                { t: "LUPUS.EXE BIOS v3.14", cls: "mag", d: 60 },
+                {
+                    t: '(c) 2026 Matteo "Lupus" Da Venezia McCormack — Dublin, IE',
+                    cls: "dim",
+                    d: 40,
+                },
+                { t: "", d: 80 },
+                { t: "Initializing core...", cls: "acc", d: 120 },
+                {
+                    t: '  CPU.................. <span class="ok">[ OK ]</span>',
+                    d: 60,
+                },
+                {
+                    t: '  RAM.................. <span class="ok">[ OK ]</span>',
+                    d: 60,
+                },
+                {
+                    t: '  GPU.................. <span class="ok">[ OK ]</span>',
+                    d: 60,
+                },
+                {
+                    t: '  CAFFEINE LEVELS...... <span class="ok">[ NOMINAL ]</span>',
+                    d: 90,
+                },
+                {
+                    t: '  WOLFISH INSTINCTS.... <span class="ok">[ ONLINE ]</span>',
+                    d: 90,
+                },
+                {
+                    t: '  IMPOSTER SYNDROME.... <span class="warn">[ DETECTED — IGNORING ]</span>',
+                    d: 120,
+                },
+                { t: "", d: 60 },
+                { t: "Mounting filesystems...", cls: "acc", d: 80 },
+                { t: "  /home/lupus/about........... mounted", d: 50 },
+                { t: "  /home/lupus/projects........ mounted", d: 50 },
+                { t: "  /home/lupus/wild_hunt....... mounted", d: 50 },
+                { t: "  /home/lupus/ctf_logs........ mounted", d: 50 },
+                { t: "", d: 80 },
+                { t: "Loading character data:", cls: "acc", d: 80 },
+                {
+                    t: '  callsign.......... <span class="mag">LUPUS</span>',
+                    d: 80,
+                },
+                {
+                    t: '  origin............ <span class="mag">VENEZIA, IT</span>',
+                    d: 80,
+                },
+                {
+                    t: '  current_loc....... <span class="acc">DUBLIN, IE</span>',
+                    d: 80,
+                },
+                {
+                    t: '  campaign.......... <span class="acc">TRINITY COLLEGE DUBLIN — CS</span>',
+                    d: 80,
+                },
+                {
+                    t: '  research.......... <span class="acc">HUAWEI IRELAND RESEARCH CENTRE</span>',
+                    d: 80,
+                },
+                {
+                    t: '  faction........... <span class="ok">WILD HUNT PROJECT (founder)</span>',
+                    d: 80,
+                },
+                { t: "  level............. 22", d: 60 },
+                { t: "", d: 60 },
+                {
+                    t: 'Establishing comms uplink......... <span class="ok">[ DONE ]</span>',
+                    d: 120,
+                },
+                { t: "Boot complete.", cls: "ok", d: 200 },
+                {
+                    t: '> launching lupus.exe<span class="cursor"></span>',
+                    d: 600,
+                },
+            ];
+            let bootIdx = 0;
+            function bootTick() {
+                if (bootIdx >= bootLines.length) {
+                    setTimeout(() => {
+                        const b = document.getElementById("boot");
+                        if (b) {
+                            b.classList.add("done");
+                            setTimeout(() => b.remove(), 800);
+                        }
+                        revealStart();
+                    }, 400);
+                    return;
+                }
+                const l = bootLines[bootIdx++];
+                const div = document.createElement("div");
+                div.innerHTML =
+                    (l.cls ? `<span class="${l.cls}">${l.t}</span>` : l.t) ||
+                    "&nbsp;";
+                bootLog.appendChild(div);
+                bootLog.scrollTop = bootLog.scrollHeight;
+                setTimeout(bootTick, l.d || 60);
+            }
+            document.addEventListener("click", skipBoot, { once: true });
+            document.addEventListener("keydown", skipBoot, { once: true });
+            function skipBoot() {
+                const b = document.getElementById("boot");
+                if (b && !b.classList.contains("done")) {
+                    b.classList.add("done");
+                    setTimeout(() => b.remove && b.remove(), 600);
+                    revealStart();
+                }
+            }
+            setTimeout(bootTick, 200);
+
+            // TYPED HEADLINE
+            const phrases = [
+                "whoami: lupus // half venetian, half irish",
+                "trinity college dublin / computer science",
+                "huawei ireland research centre / autonomous networks",
+                "founder, wild hunt project",
+                "stay sharp, keep hunting, never stop learning ▊",
+            ];
+            const typed = document.getElementById("typed");
+            let pIdx = 0,
+                cIdx = 0,
+                deleting = false,
+                started = false;
+            function typeLoop() {
+                if (!typed) return;
+                const p = phrases[pIdx];
+                if (!deleting) {
+                    cIdx++;
+                    typed.innerHTML = p.slice(0, cIdx);
+                    if (cIdx >= p.length) {
+                        deleting = true;
+                        setTimeout(typeLoop, 1800);
+                        return;
+                    }
+                } else {
+                    cIdx--;
+                    typed.innerHTML = p.slice(0, cIdx);
+                    if (cIdx <= 0) {
+                        deleting = false;
+                        pIdx = (pIdx + 1) % phrases.length;
+                    }
+                }
+                setTimeout(typeLoop, deleting ? 30 : 60);
+            }
+            function revealStart() {
+                if (started) return;
+                started = true;
+                typeLoop();
+                initObserver();
+            }
+
+            function initObserver() {
+                const io = new IntersectionObserver(
+                    (entries) => {
+                        entries.forEach((e) => {
+                            if (e.isIntersecting)
+                                e.target.classList.add("visible");
+                        });
+                    },
+                    { threshold: 0.08 },
+                );
+                document
+                    .querySelectorAll(".reveal")
+                    .forEach((el) => io.observe(el));
+            }
+
+            // FILTERS
+            const filters = document.querySelectorAll("#filters .filter");
+            filters.forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    filters.forEach((b) => b.classList.remove("active"));
+                    btn.classList.add("active");
+                    const f = btn.dataset.f;
+                    let visible = 0;
+                    document.querySelectorAll("#grid .item").forEach((item) => {
+                        const show = f === "all" || item.dataset.cat === f;
+                        item.style.display = show ? "" : "none";
+                        if (show) visible++;
+                    });
+                    document.getElementById("proj-count").textContent = visible;
+                });
+            });
+
+            // KONAMI
+            const konami = [
+                "ArrowUp",
+                "ArrowUp",
+                "ArrowDown",
+                "ArrowDown",
+                "ArrowLeft",
+                "ArrowRight",
+                "ArrowLeft",
+                "ArrowRight",
+                "b",
+                "a",
+            ];
+            let kIdx = 0;
+            document.addEventListener("keydown", (e) => {
+                const want = konami[kIdx];
+                const got = e.key.toLowerCase();
+                if (got === want.toLowerCase()) {
+                    kIdx++;
+                    if (kIdx === konami.length) {
+                        triggerKonami();
+                        kIdx = 0;
+                    }
+                } else {
+                    kIdx = 0;
+                }
+            });
+            const overlay = document.getElementById("konami-overlay");
+            overlay.addEventListener("click", () =>
+                overlay.classList.remove("show"),
+            );
+            function triggerKonami() {
+                overlay.classList.add("show");
+                try {
+                    const ctx = new (
+                        window.AudioContext || window.webkitAudioContext
+                    )();
+                    const o = ctx.createOscillator();
+                    const g = ctx.createGain();
+                    o.type = "square";
+                    o.frequency.setValueAtTime(880, ctx.currentTime);
+                    o.frequency.exponentialRampToValueAtTime(
+                        220,
+                        ctx.currentTime + 0.4,
+                    );
+                    g.gain.setValueAtTime(0.05, ctx.currentTime);
+                    g.gain.exponentialRampToValueAtTime(
+                        0.0001,
+                        ctx.currentTime + 0.5,
+                    );
+                    o.connect(g);
+                    g.connect(ctx.destination);
+                    o.start();
+                    o.stop(ctx.currentTime + 0.5);
+                } catch (_) {}
+            }
+
+            // TERMINAL
+            const termBody = document.getElementById("termBody");
+            const termInput = document.getElementById("termInput");
+            function termPrint(html, cls) {
+                const d = document.createElement("div");
+                d.className = "term-line";
+                d.innerHTML = cls
+                    ? `<span class="${cls}">${html}</span>`
+                    : html;
+                termBody.appendChild(d);
+                termBody.scrollTop = termBody.scrollHeight;
+            }
+            const commands = {
+                help: () => {
+                    termPrint("available commands:", "info");
+                    termPrint(
+                        '  <span class="warn">about</span>      — short bio',
+                        "info",
+                    );
+                    termPrint(
+                        '  <span class="warn">whoami</span>     — quick stats',
+                        "info",
+                    );
+                    termPrint(
+                        '  <span class="warn">contact</span>    — how to reach me',
+                        "info",
+                    );
+                    termPrint(
+                        '  <span class="warn">socials</span>    — github, linkedin, etc.',
+                        "info",
+                    );
+                    termPrint(
+                        '  <span class="warn">resume</span>     — link to cv',
+                        "info",
+                    );
+                    termPrint(
+                        '  <span class="warn">skills</span>     — main stack',
+                        "info",
+                    );
+                    termPrint(
+                        '  <span class="warn">hunt</span>       — about the wild hunt project',
+                        "info",
+                    );
+                    termPrint(
+                        '  <span class="warn">cat secret</span> — try it.',
+                        "info",
+                    );
+                    termPrint(
+                        '  <span class="warn">clear</span>      — clear the screen',
+                        "info",
+                    );
+                    termPrint(
+                        '  <span class="warn">exit</span>       — close comms',
+                        "info",
+                    );
+                },
+                about: () => {
+                    termPrint('matteo "lupus" da venezia mccormack.');
+                    termPrint(
+                        "half venetian, half irish, fully addicted to elegant code.",
+                    );
+                    termPrint(
+                        "cs @ trinity college dublin — researching autonomous networks @ huawei ireland.",
+                    );
+                    termPrint(
+                        "security researcher. founder of the wild hunt project. lvl 22.",
+                    );
+                },
+                whoami: () =>
+                    termPrint(
+                        "uid=1337(lupus) gid=1337(wolves) groups=cs,security,coffee,linux,ctf,bilingual",
+                    ),
+                contact: () => {
+                    termPrint(
+                        'linkedin  : <span class="warn">linkedin.com/in/matteo-davenezia</span>',
+                        "info",
+                    );
+                    termPrint(
+                        'location  : <span class="warn">dublin, ie</span>',
+                        "info",
+                    );
+                    termPrint(
+                        'open to   : <span class="ok">research, security, internships, side-quests</span>',
+                        "info",
+                    );
+                },
+                socials: () => {
+                    termPrint(
+                        'linkedin    : linkedin.com/in/<span class="warn">matteo-davenezia</span>',
+                        "info",
+                    );
+                    termPrint(
+                        'wild hunt   : <span class="warn">lupusartorias.github.io/WildHuntProject</span>',
+                        "info",
+                    );
+                    termPrint(
+                        'github      : github.com/<span class="warn">TheVenetianWolf</span>',
+                        "info",
+                    );
+                },
+                resume: () => {
+                    termPrint(
+                        'opening <span class="warn">Matteo_CV.pdf</span>...',
+                        "info",
+                    );
+                    window.open("assets/Matteo_CV.pdf", "_blank");
+                },
+                skills: () => {
+                    termPrint(
+                        "languages : python, c, java, js, sql, bash, php, assembly",
+                        "info",
+                    );
+                    termPrint(
+                        "web       : react, node, express, mongodb, mysql",
+                        "info",
+                    );
+                    termPrint(
+                        "cloud     : docker, aws, azure, git, ci/cd",
+                        "info",
+                    );
+                    termPrint(
+                        "security  : hackerone, bugcrowd, hack the box, tryhackme, ctfs",
+                        "info",
+                    );
+                    termPrint(
+                        "specialty : full-stack, ethical hacking, threat modelling, devsecops",
+                        "info",
+                    );
+                    termPrint(
+                        "research  : autonomous networks, cybersecurity, applied ml",
+                        "info",
+                    );
+                },
+                hunt: () => {
+                    termPrint("the wild hunt project 🐺", "ok");
+                    termPrint(
+                        "a worldwide community of problem-hunters, united by the thrill of",
+                        "info",
+                    );
+                    termPrint(
+                        "hunting down problems and forging solutions that shape the future.",
+                        "info",
+                    );
+                    termPrint(
+                        'founded dec 2024. site: <span class="warn">lupusartorias.github.io/WildHuntProject</span>',
+                        "info",
+                    );
+                },
+                "cat secret": () =>
+                    termPrint("try the konami code: ↑ ↑ ↓ ↓ ← → ← → B A", "ok"),
+                sudo: () => termPrint("nice try.", "warn"),
+                "rm -rf /": () =>
+                    termPrint("refused. this save file is sacred.", "warn"),
+                ls: () =>
+                    termPrint(
+                        "about.md  projects/  hunts/  trophies/  societies/  wild_hunt/",
+                        "info",
+                    ),
+                pwd: () => termPrint("/home/lupus/portfolio", "info"),
+                date: () => termPrint(new Date().toString(), "info"),
+                echo: (args) => termPrint((args || []).join(" ") || ""),
+                clear: () => {
+                    termBody.innerHTML = "";
+                },
+                exit: () =>
+                    termPrint("connection closed by foreign host.", "warn"),
+                wolf: () => termPrint("🐺 the wolf is listening.", "ok"),
+            };
+            termInput.addEventListener("keydown", (e) => {
+                if (e.key !== "Enter") return;
+                const raw = termInput.value.trim();
+                termPrint(
+                    `<span class="prompt">visitor@lupus:~$</span> <span class="you">${raw.replace(/</g, "&lt;")}</span>`,
+                );
+                termInput.value = "";
+                if (!raw) return;
+                const lower = raw.toLowerCase();
+                const parts = lower.split(/\s+/);
+                const cmd = parts[0];
+                if (commands[lower]) {
+                    commands[lower]();
+                    return;
+                }
+                if (commands[cmd]) {
+                    commands[cmd](parts.slice(1));
+                    return;
+                }
+                termPrint(
+                    `bash: ${raw}: command not found. type <span class="warn">help</span>.`,
+                    "warn",
+                );
+            });
+            const termSection = document.getElementById("contact");
+            const tio = new IntersectionObserver(
+                (es) => {
+                    es.forEach((e) => {
+                        if (e.isIntersecting)
+                            termInput.focus({ preventScroll: true });
+                    });
+                },
+                { threshold: 0.5 },
+            );
+            tio.observe(termSection);
+        </script>
+    </body>
+</html>
