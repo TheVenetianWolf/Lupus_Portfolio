@@ -6,7 +6,7 @@
         <title>lupus.exe // matteo da venezia mccormack</title>
         <meta
             name="description"
-            content='Matteo "Lupus" Da Venezia McCormack — CS at Trinity College Dublin, AI engineer intern at Red Hat, security researcher, founder of the Wild Hunt Project.'
+            content='Matteo "Lupus" Da Venezia McCormack — BA (Mod) Computer Science at Trinity College Dublin, specialising in AI and security. AI engineer intern at Red Hat, security researcher, founder of the Wild Hunt Project.'
         />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -443,6 +443,9 @@
                 display: grid;
                 gap: 16px;
             }
+            .about-text .jobs {
+                margin-top: 16px;
+            }
             .job {
                 background: rgba(13, 8, 32, 0.65);
                 border: 1px solid rgba(0, 240, 255, 0.28);
@@ -472,6 +475,10 @@
             }
             .job li {
                 margin-bottom: 4px;
+            }
+            .job b {
+                color: var(--cyan);
+                font-weight: 500;
             }
 
             .stack-grid {
@@ -530,6 +537,64 @@
                 color: var(--ink-dim);
                 text-transform: uppercase;
                 letter-spacing: 0.12em;
+            }
+
+            .posts {
+                display: grid;
+                gap: 14px;
+            }
+            .post {
+                background: rgba(13, 8, 32, 0.65);
+                border: 1px solid rgba(138, 43, 226, 0.35);
+                padding: 16px 18px;
+            }
+            .post summary {
+                cursor: pointer;
+                list-style: none;
+            }
+            .post summary::-webkit-details-marker {
+                display: none;
+            }
+            .post .rarity {
+                font-family: var(--font-pixel);
+                font-size: 16px;
+                color: var(--amber);
+            }
+            .post h3 {
+                font-family: var(--font-display);
+                font-size: 14px;
+                letter-spacing: 0.1em;
+                text-transform: uppercase;
+                margin: 4px 0 6px;
+            }
+            .post .meta {
+                font-family: var(--font-pixel);
+                font-size: 16px;
+                color: var(--cyan);
+                margin-bottom: 8px;
+            }
+            .post .lede {
+                color: var(--ink-dim);
+                font-size: 14px;
+            }
+            .post[open] .lede {
+                display: none;
+            }
+            .post .body {
+                margin-top: 12px;
+                font-size: 14px;
+            }
+            .post .body p {
+                margin-bottom: 10px;
+            }
+            .post summary::after {
+                content: " ▸ read";
+                color: var(--mag);
+                font-family: var(--font-pixel);
+                font-size: 16px;
+            }
+            .post[open] summary::after {
+                content: " ▾ close";
             }
 
             .contact-plain {
@@ -684,6 +749,7 @@
                 <li><a href="#work">work</a></li>
                 <li><a href="#experience">experience</a></li>
                 <li><a href="#about">about</a></li>
+                <li><a href="#blog">blog</a></li>
                 <li><a href="#contact">contact</a></li>
             </ul>
             <div class="reach">
@@ -700,8 +766,8 @@
                 <div>
                     <h1>Matteo Da Venezia McCormack</h1>
                     <p class="role">
-                        AI engineer intern @ Red Hat · CS @ Trinity College
-                        Dublin · security research
+                        AI engineer intern @ Red Hat · BA (Mod) Computer Science
+                        @ Trinity, specialising in AI &amp; security
                     </p>
                     <p class="tagline">EVERY SECOND COUNTS.</p>
                     <p class="blurb">
@@ -943,21 +1009,46 @@
                 </div>
                 <div class="about-text">
                     <p>
-                        I didn't fall into technology. I walked towards it —
-                        Computer Science at Trinity, fourteen weeks inside
-                        Huawei's network research, now an AI intern at Red Hat.
-                        The rest of the hours go to security research and to
+                        I didn't fall into technology. I walked towards it.
+                        Integrated Computer Science at Trinity, specialising
+                        in AI and security; fourteen weeks inside Huawei's
+                        network research; now an AI intern at Red Hat. The
+                        rest of the hours go to security research and to
                         people who still notice when something is broken.
                     </p>
                     <div class="lore-box">
                         "The best problem-solvers aren't defined by their job
                         title. They're defined by the hunt."
                     </div>
-                    <p>
-                        BSc Computer Science, Trinity College Dublin (2022–).
-                        CCNA with merit. Italian technical diploma in computer
-                        systems, networking and telecoms.
-                    </p>
+                    <div class="jobs">
+                    <article class="job">
+                        <div class="role">Integrated Computer Science</div>
+                        <div class="org">Trinity College Dublin</div>
+                        <div class="when">Oct 2022 – Present · Dublin, IE</div>
+                        <ul>
+                            <li>
+                                Specialising in
+                                <b>artificial intelligence</b> and
+                                <b>security</b> — work on AI, security and
+                                privacy, and the networks those systems
+                                actually run on.
+                            </li>
+                        </ul>
+                    </article>
+                    <article class="job">
+                        <div class="role">CCNA</div>
+                        <div class="org">Cisco Networking Academy</div>
+                        <div class="when">2020 – 2022 · 100/100 with merit</div>
+                    </article>
+                    <article class="job">
+                        <div class="role">
+                            Diploma — Computer Systems, Networking &amp;
+                            Telecoms
+                        </div>
+                        <div class="org">Enrico Fermi Venezia</div>
+                        <div class="when">Sep 2017 – Jun 2022 · Venezia, IT</div>
+                    </article>
+                    </div>
                     <div class="signoff">
                         <small>// signed</small>
                         Your Friendly Neighbourhood Wolf
@@ -971,9 +1062,79 @@
                 </p>
             </section>
 
-            <section id="contact">
+            <section id="blog">
                 <div class="section-head">
                     <span class="num">05</span>
+                    <h2>Field notes</h2>
+                </div>
+                <p class="also" style="margin-bottom: 16px">
+                    Prototype log. Two notes, no CMS — click to expand.
+                </p>
+                <div class="posts">
+                    <details class="post">
+                        <summary>
+                            <div class="rarity">// note 001</div>
+                            <h3>The hunt is the job title</h3>
+                            <div class="meta">Aug 2026 · community</div>
+                            <p class="lede">
+                                Why I started the Wild Hunt Project instead of
+                                waiting for a nicer label on LinkedIn.
+                            </p>
+                        </summary>
+                        <div class="body">
+                            <p>
+                                Job titles lag behind the work. I was already
+                                hunting broken things — in labs, in CTFs, in
+                                other people's production — long before anyone
+                                paid me to. The Wild Hunt Project is that
+                                instinct written down: a public rule-set for
+                                people who refuse to walk past a problem.
+                            </p>
+                            <p>
+                                Recruiters ask what I "am". The honest answer
+                                is narrower than a stack list and wider than
+                                intern. I study computer science at Trinity,
+                                specialising in AI and security. I ship
+                                simulations, I disclose bugs, I run a pack.
+                                The through-line is the hunt.
+                            </p>
+                        </div>
+                    </details>
+                    <details class="post">
+                        <summary>
+                            <div class="rarity">// note 002</div>
+                            <h3>Fenrir, or making pursuit visible</h3>
+                            <div class="meta">2026 · engineering</div>
+                            <p class="lede">
+                                A Sunday curiosity that became a public Python
+                                lab for missile guidance and pursuit.
+                            </p>
+                        </summary>
+                        <div class="body">
+                            <p>
+                                Fenrir started as caffeine and a question: can
+                                you <em>see</em> proportional navigation, or
+                                does it only live in lecture slides? The
+                                dashboard is the answer. Live trajectories,
+                                evasive targets, telemetry, a radar view —
+                                Python and Streamlit, all of it runnable.
+                            </p>
+                            <p>
+                                I published it because a simulation you cannot
+                                clone is just a screenshot. Repo:
+                                <a
+                                    href="https://github.com/TheVenetianWolf/Fenrir"
+                                    >TheVenetianWolf/Fenrir</a
+                                >.
+                            </p>
+                        </div>
+                    </details>
+                </div>
+            </section>
+
+            <section id="contact">
+                <div class="section-head">
+                    <span class="num">06</span>
                     <h2>Contact</h2>
                 </div>
                 <div class="contact-plain">
@@ -1059,7 +1220,7 @@
                     ),
                 whoami: () =>
                     termPrint(
-                        "matteo da venezia mccormack — red hat intern, tcd cs, security.",
+                        "matteo da venezia mccormack — red hat intern, tcd cs (ai &amp; security).",
                     ),
                 clear: () => {
                     termBody.innerHTML = "";
